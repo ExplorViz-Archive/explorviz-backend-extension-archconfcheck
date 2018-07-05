@@ -18,17 +18,17 @@ buildscript {
 
 repositories {
   jcenter()
-  maven { url 'https://jitpack.io' }
   
   // used for kieker and teetime snapshots
   maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+   maven { url 'https://jitpack.io' }
 }
 
 
 // # Uncomment lines below to force dependency downloading (e.g. when explorviz-backend was updated)
-//configurations.all {
-//    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-//}
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
 
 
 configurations {
@@ -39,7 +39,9 @@ configurations {
 
 dependencies {
   	// Core logic
-  	compile 'com.github.ExplorViz:explorviz-backend:master-SNAPSHOT'
+  	//implementation 'com.github.ExplorViz:explorviz-backend-extension-modeleditor:master-SNAPSHOT'
+  	compile 'com.github.ExplorViz:explorviz-backend-extension-modeleditor:master-SNAPSHOT'
+	
 	
 	// local linking (explorviz backend project)
 	//compile project(':explorviz-backend')
