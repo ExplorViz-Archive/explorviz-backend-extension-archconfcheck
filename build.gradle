@@ -42,7 +42,8 @@ dependencies {
   	//implementation 'com.github.ExplorViz:explorviz-backend-extension-modeleditor:master-SNAPSHOT'
   	compile 'com.github.ExplorViz:explorviz-backend-extension-modeleditor:master-SNAPSHOT'
 	
-	
+    compile fileTree(dir: 'libs', include: '*.jar')
+
 	// local linking (explorviz backend project)
 	//compile project(':explorviz-backend')
 	//compile project(':explorviz-backend-kiekeradapter')
