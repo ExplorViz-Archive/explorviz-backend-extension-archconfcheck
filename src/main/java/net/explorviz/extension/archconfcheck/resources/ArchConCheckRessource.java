@@ -416,6 +416,50 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 				comparedComponent.getChildren().add(comparedChildComponent);
 			}
 		}
+		for (final Clazz monitoredClazz : monitoredComponent.getClazzes()) {
+			boolean compareCheck = false;
+			for (final Clazz modeledClazz : modeledComponent.getClazzes()) {
+				if (monitoredClazz.getName().equals(modeledClazz.getName())) {
+					// this Clazz is ASMODELED
+					final Clazz comparedClazz = monitoredClazz;
+					comparedClazz.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
+					// does not have any submodules (clazzes are ALWAYS leaves of the landscape
+					// tree)
+					comparedComponent.getClazzes().add(comparedClazz);
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// now we know it is a Component that was not in the model but was in the
+				// monitored
+				// Data => WARNIComponent
+				final Clazz comparedClazz = monitoredClazz;
+				comparedClazz.getExtensionAttributes().put(saveAs, Status.WARNING);
+				// does not have any submodules (clazzes are ALWAYS leaves of the landscape
+				// tree)
+				comparedComponent.getClazzes().add(comparedClazz);
+			}
+		}
+		// now the backwards search
+		for (final Clazz modeledClazz : modeledComponent.getClazzes()) {
+			boolean compareCheck = false;
+			for (final Clazz monitoredClazz : monitoredComponent.getClazzes()) {
+				if (monitoredClazz.getName().equals(modeledClazz.getName())) {
+					// was handled in the "forward" search!
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// we now know there is a Component that is a GHOST
+				final Clazz comparedClazz = modeledClazz;
+				comparedClazz.getExtensionAttributes().put(saveAs, Status.GHOST);
+				// does not have any submodules (clazzes are ALWAYS leaves of the landscape
+				// tree)
+				comparedComponent.getClazzes().add(comparedClazz);
+			}
+		}
 
 	}
 }
