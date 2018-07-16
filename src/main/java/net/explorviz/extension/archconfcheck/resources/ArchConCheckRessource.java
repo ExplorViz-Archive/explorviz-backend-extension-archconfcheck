@@ -82,8 +82,7 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 	private Landscape calculateArchConfCheckLandscape(final Landscape monitoredLandscape,
 			final Landscape modelLandscape) {
 
-		// TODO Do magic code that compares the two Landscapes and returns a new and
-		// better with attributes Landscape and such
+		// TODO Do magic code that looks over the Communications
 		final Landscape calculatedLandscape = new Landscape();
 		calculatedLandscape.initializeID();
 		calculatedLandscape.setOverallCalls(new Random().nextInt(300000));
@@ -332,7 +331,7 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 		for (final Component monitoredComponent : monitoredApplication.getComponents()) {
 			boolean compareCheck = false;
 			for (final Component modeledComponent : modeledApplication.getComponents()) {
-				if (monitoredComponent.getName().equals(modeledComponent.getName())) {
+				if (monitoredComponent.getFullQualifiedName().equals(modeledComponent.getFullQualifiedName())) {
 					// this Application was ASMODELED
 					final Component comparedComponent = monitoredComponent;
 					comparedComponent.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
@@ -356,7 +355,7 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 		for (final Component modeledComponent : modeledApplication.getComponents()) {
 			boolean compareCheck = false;
 			for (final Component monitoredComponent : monitoredApplication.getComponents()) {
-				if (monitoredComponent.getName().equals(modeledComponent.getName())) {
+				if (monitoredComponent.getFullQualifiedName().equals(modeledComponent.getFullQualifiedName())) {
 					// was handled in the "forward" search!
 					compareCheck = true;
 					break;
@@ -378,7 +377,8 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 		for (final Component monitoredChildComponent : monitoredComponent.getChildren()) {
 			boolean compareCheck = false;
 			for (final Component modeledChildComponent : modeledComponent.getChildren()) {
-				if (monitoredChildComponent.getName().equals(modeledChildComponent.getName())) {
+				if (monitoredChildComponent.getFullQualifiedName()
+						.equals(modeledChildComponent.getFullQualifiedName())) {
 					// this Component was ASMODELED
 					final Component comparedChildComponent = monitoredChildComponent;
 					comparedChildComponent.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
@@ -402,7 +402,8 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 		for (final Component modeledChildComponent : modeledComponent.getChildren()) {
 			boolean compareCheck = false;
 			for (final Component monitoredChildComponent : monitoredComponent.getChildren()) {
-				if (monitoredChildComponent.getName().equals(modeledChildComponent.getName())) {
+				if (monitoredChildComponent.getFullQualifiedName()
+						.equals(modeledChildComponent.getFullQualifiedName())) {
 					// was handled in the "forward" search!
 					compareCheck = true;
 					break;
@@ -419,7 +420,7 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 		for (final Clazz monitoredClazz : monitoredComponent.getClazzes()) {
 			boolean compareCheck = false;
 			for (final Clazz modeledClazz : modeledComponent.getClazzes()) {
-				if (monitoredClazz.getName().equals(modeledClazz.getName())) {
+				if (monitoredClazz.getFullQualifiedName().equals(modeledClazz.getFullQualifiedName())) {
 					// this Clazz is ASMODELED
 					final Clazz comparedClazz = monitoredClazz;
 					comparedClazz.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
@@ -445,7 +446,7 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 		for (final Clazz modeledClazz : modeledComponent.getClazzes()) {
 			boolean compareCheck = false;
 			for (final Clazz monitoredClazz : monitoredComponent.getClazzes()) {
-				if (monitoredClazz.getName().equals(modeledClazz.getName())) {
+				if (monitoredClazz.getFullQualifiedName().equals(modeledClazz.getFullQualifiedName())) {
 					// was handled in the "forward" search!
 					compareCheck = true;
 					break;
