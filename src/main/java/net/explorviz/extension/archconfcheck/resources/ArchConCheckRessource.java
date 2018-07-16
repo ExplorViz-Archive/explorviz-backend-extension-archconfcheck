@@ -83,10 +83,13 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 			final Landscape modelLandscape) {
 
 		// TODO Do magic code that looks over the Communications
+
 		final Landscape calculatedLandscape = new Landscape();
 		calculatedLandscape.initializeID();
 		calculatedLandscape.setOverallCalls(new Random().nextInt(300000));
 
+		// all of this can be put into a wider range of methods?!!?
+		// just get some methods that work on BaseEntity and have switches!?
 		for (final net.explorviz.model.landscape.System child1 : monitoredLandscape.getSystems()) {
 			boolean compareCheck = false;
 			for (final net.explorviz.model.landscape.System child2 : modelLandscape.getSystems()) {
