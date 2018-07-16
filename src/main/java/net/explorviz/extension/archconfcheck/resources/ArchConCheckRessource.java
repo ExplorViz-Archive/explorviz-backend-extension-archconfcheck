@@ -98,10 +98,10 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 					comparedSystem.setName(child1.getName());
 					comparedSystem.setParent(calculatedLandscape);
 					comparedSystem.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
+					// now the following subcategories can be anything! oO
+					checkNodegroups(comparedSystem, child1, child2);
 					calculatedLandscape.getSystems().add(comparedSystem);
 					compareCheck = true;
-					// now the following subcategories can be anything! oO
-					checkNodegroups(calculatedLandscape, child1, child2);
 					break;
 				}
 			}
@@ -195,7 +195,227 @@ public class ArchConCheckRessource extends ModelLandscapeResource {
 		}
 	}
 
-	private void checkNodegroups(final Landscape landscape, final System child1, final System child2) {
+	private void checkNodegroups(final System comparedSystem, final System monitoredSystem,
+			final System modeledSystem) {
+		for (final NodeGroup monitoredNG : monitoredSystem.getNodeGroups()) {
+			boolean compareCheck = false;
+			for (final NodeGroup modeledNG : modeledSystem.getNodeGroups()) {
+				if (monitoredNG.getName().equals(modeledNG.getName())) {
+					// this NG was ASMODELED
+					final NodeGroup comparedNG = monitoredNG;
+					comparedNG.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
+					checkNodes(comparedNG, monitoredNG, modeledNG);
+					comparedSystem.getNodeGroups().add(comparedNG);
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// now we know it is a NG that was not in the model but was in the monitored
+				// Data => WARNING
+				final NodeGroup comparedNG = monitoredNG;
+				comparedNG.getExtensionAttributes().put(saveAs, Status.WARNING);
+				setStatusOfNodes(comparedNG, monitoredNG, Status.WARNING);
+				comparedSystem.getNodeGroups().add(comparedNG);
+			}
+		}
+		// now the backwards search
+		for (final NodeGroup modeledNG : modeledSystem.getNodeGroups()) {
+			boolean compareCheck = false;
+			for (final NodeGroup monitoredNG : monitoredSystem.getNodeGroups()) {
+				if (monitoredNG.getName().equals(modeledNG.getName())) {
+					// was handled in the "forward" search!
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// we now know there is a NodeGroup that is a GHOST
+				final NodeGroup comparedNG = modeledNG;
+				comparedNG.getExtensionAttributes().put(saveAs, Status.GHOST);
+				setStatusOfNodes(comparedNG, modeledNG, Status.GHOST);
+				comparedSystem.getNodeGroups().add(comparedNG);
+			}
+		}
+
+	}
+
+	private void checkNodes(final NodeGroup comparedNG, final NodeGroup monitoredNG, final NodeGroup modeledNG) {
+		for (final Node monitoredNode : monitoredNG.getNodes()) {
+			boolean compareCheck = false;
+			for (final Node modeledNode : modeledNG.getNodes()) {
+				if (monitoredNode.getName().equals(modeledNode.getName())) {
+					// this NG was ASMODELED
+					final Node comparedNode = monitoredNode;
+					comparedNode.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
+					checkApplications(comparedNode, monitoredNode, modeledNode);
+					comparedNG.getNodes().add(comparedNode);
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// now we know it is a NG that was not in the model but was in the monitored
+				// Data => WARNING
+				final Node comparedNode = monitoredNode;
+				comparedNode.getExtensionAttributes().put(saveAs, Status.WARNING);
+				setStatusOfApplications(comparedNode, monitoredNode, Status.WARNING);
+				comparedNG.getNodes().add(comparedNode);
+			}
+		}
+		// now the backwards search
+		for (final Node modeledNode : modeledNG.getNodes()) {
+			boolean compareCheck = false;
+			for (final Node monitoredNode : monitoredNG.getNodes()) {
+				if (monitoredNode.getName().equals(modeledNode.getName())) {
+					// was handled in the "forward" search!
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// we now know there is a Node that is a GHOST
+				final Node comparedNode = modeledNode;
+				comparedNode.getExtensionAttributes().put(saveAs, Status.GHOST);
+				setStatusOfApplications(comparedNode, modeledNode, Status.GHOST);
+				comparedNG.getNodes().add(comparedNode);
+			}
+		}
+	}
+
+	private void checkApplications(final Node comparedNode, final Node monitoredNode, final Node modeledNode) {
+		for (final Application monitoredApplication : monitoredNode.getApplications()) {
+			boolean compareCheck = false;
+			for (final Application modeledApplication : modeledNode.getApplications()) {
+				if (monitoredApplication.getName().equals(modeledApplication.getName())) {
+					// this Node was ASMODELED
+					final Application comparedApplication = monitoredApplication;
+					comparedApplication.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
+					checkChildComponents(comparedApplication, monitoredApplication, modeledApplication);
+					comparedNode.getApplications().add(comparedApplication);
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// now we know it is a Node that was not in the model but was in the monitored
+				// Data => WARNINode
+				final Application comparedApplication = monitoredApplication;
+				comparedApplication.getExtensionAttributes().put(saveAs, Status.WARNING);
+				setStatusOfChildComponents(comparedApplication, monitoredApplication, Status.WARNING);
+				comparedNode.getApplications().add(comparedApplication);
+			}
+		}
+		// now the backwards search
+		for (final Application modeledApplication : modeledNode.getApplications()) {
+			boolean compareCheck = false;
+			for (final Application monitoredApplication : monitoredNode.getApplications()) {
+				if (monitoredApplication.getName().equals(modeledApplication.getName())) {
+					// was handled in the "forward" search!
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// we now know there is a Application that is a GHOST
+				final Application comparedApplication = modeledApplication;
+				comparedApplication.getExtensionAttributes().put(saveAs, Status.GHOST);
+				setStatusOfChildComponents(comparedApplication, modeledApplication, Status.GHOST);
+				comparedNode.getApplications().add(comparedApplication);
+			}
+		}
+
+	}
+
+	private void checkChildComponents(final Application comparedApplication, final Application monitoredApplication,
+			final Application modeledApplication) {
+		for (final Component monitoredComponent : monitoredApplication.getComponents()) {
+			boolean compareCheck = false;
+			for (final Component modeledComponent : modeledApplication.getComponents()) {
+				if (monitoredComponent.getName().equals(modeledComponent.getName())) {
+					// this Application was ASMODELED
+					final Component comparedComponent = monitoredComponent;
+					comparedComponent.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
+					checkComponents(comparedComponent, monitoredComponent, modeledComponent);
+					comparedApplication.getComponents().add(comparedComponent);
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// now we know it is a Application that was not in the model but was in the
+				// monitored
+				// Data => WARNIApplication
+				final Component comparedComponent = monitoredComponent;
+				comparedComponent.getExtensionAttributes().put(saveAs, Status.WARNING);
+				setStatusOfComponents(comparedComponent, monitoredComponent, Status.WARNING);
+				comparedApplication.getComponents().add(comparedComponent);
+			}
+		}
+		// now the backwards search
+		for (final Component modeledComponent : modeledApplication.getComponents()) {
+			boolean compareCheck = false;
+			for (final Component monitoredComponent : monitoredApplication.getComponents()) {
+				if (monitoredComponent.getName().equals(modeledComponent.getName())) {
+					// was handled in the "forward" search!
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// we now know there is a Component that is a GHOST
+				final Component comparedComponent = modeledComponent;
+				comparedComponent.getExtensionAttributes().put(saveAs, Status.GHOST);
+				setStatusOfComponents(comparedComponent, modeledComponent, Status.GHOST);
+				comparedApplication.getComponents().add(comparedComponent);
+			}
+		}
+
+	}
+
+	private void checkComponents(final Component comparedComponent, final Component monitoredComponent,
+			final Component modeledComponent) {
+		for (final Component monitoredChildComponent : monitoredComponent.getChildren()) {
+			boolean compareCheck = false;
+			for (final Component modeledChildComponent : modeledComponent.getChildren()) {
+				if (monitoredChildComponent.getName().equals(modeledChildComponent.getName())) {
+					// this Component was ASMODELED
+					final Component comparedChildComponent = monitoredChildComponent;
+					comparedChildComponent.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
+					checkComponents(comparedChildComponent, monitoredChildComponent, modeledChildComponent);
+					comparedComponent.getChildren().add(comparedChildComponent);
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// now we know it is a Component that was not in the model but was in the
+				// monitored
+				// Data => WARNIComponent
+				final Component comparedChildComponent = monitoredChildComponent;
+				comparedChildComponent.getExtensionAttributes().put(saveAs, Status.WARNING);
+				setStatusOfComponents(comparedChildComponent, monitoredChildComponent, Status.WARNING);
+				comparedComponent.getChildren().add(comparedChildComponent);
+			}
+		}
+		// now the backwards search
+		for (final Component modeledChildComponent : modeledComponent.getChildren()) {
+			boolean compareCheck = false;
+			for (final Component monitoredChildComponent : monitoredComponent.getChildren()) {
+				if (monitoredChildComponent.getName().equals(modeledChildComponent.getName())) {
+					// was handled in the "forward" search!
+					compareCheck = true;
+					break;
+				}
+			}
+			if (compareCheck == false) {
+				// we now know there is a Component that is a GHOST
+				final Component comparedChildComponent = modeledChildComponent;
+				comparedChildComponent.getExtensionAttributes().put(saveAs, Status.GHOST);
+				setStatusOfComponents(comparedChildComponent, modeledChildComponent, Status.GHOST);
+				comparedComponent.getChildren().add(comparedChildComponent);
+			}
+		}
 
 	}
 }
