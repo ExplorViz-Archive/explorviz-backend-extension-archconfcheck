@@ -20,22 +20,20 @@ import net.explorviz.model.landscape.Node;
 import net.explorviz.model.landscape.NodeGroup;
 import net.explorviz.model.landscape.System;
 import net.explorviz.server.helper.FileSystemHelper;
+import net.explorviz.server.security.Secured;
 
-// @Secured
-// Add the "Secured" annotation to enable authentication
-
-@Path("/test")
-public class ArchConCheckRessource extends ModelLandscapeResource {
+@Secured
+@Path("/landscape")
+public class ArchConfCheckRessource extends ModelLandscapeResource {
 
 	private final ExtensionAPIImpl api = ExtensionAPI.get();
-	// TODO build new fatjar!
 	private final String MODEL_REPOSITORY = super.getModelRepository();
 	private static final String saveAs = "status";
 
 	@GET
 	// the timestamps parameter is conventionalized to be first: monitored timestamp
 	// then second modeltimestamp
-	@Path("/comparedModel{timestamps}")
+	@Path("/comparedModel/{timestamps}")
 	@Produces("application/vnd.api+json")
 	public Landscape getArchConfCheckLandscape(@PathParam("timestamps") final String timestamps) {
 		// this split can be done because it is convented like that!
