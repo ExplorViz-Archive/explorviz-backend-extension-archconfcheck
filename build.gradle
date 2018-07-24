@@ -42,14 +42,14 @@ dependencies {
   	//implementation 'com.github.ExplorViz:explorviz-backend-extension-modeleditor:master-SNAPSHOT'
   	compile 'com.github.ExplorViz:explorviz-backend-extension-modeleditor:master-SNAPSHOT'
 	
-    compile fileTree(dir: 'libs', include: '*.jar')
+    //compile fileTree(dir: 'libs', include: '*.jar')
 
 	// local linking (explorviz backend project)
 	//compile project(':explorviz-backend')
 	//compile project(':explorviz-backend-kiekeradapter')
   
  	// Dependency for this subproject. Add your dependencies in the same way.
-  	provided group: 'de.sven-jacobs', name: 'loremipsum', version: '1.0'
+  	//provided group: 'de.sven-jacobs', name: 'loremipsum', version: '1.0'
 
     testCompile 'junit:junit:4.12'
 }
