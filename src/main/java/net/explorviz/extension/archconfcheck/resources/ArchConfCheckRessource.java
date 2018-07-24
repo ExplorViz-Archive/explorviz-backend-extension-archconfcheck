@@ -11,7 +11,6 @@ import javax.ws.rs.Produces;
 import net.explorviz.api.ExtensionAPI;
 import net.explorviz.api.ExtensionAPIImpl;
 import net.explorviz.extension.archconfcheck.model.Status;
-import net.explorviz.extension.modeleditor.resources.ModelLandscapeResource;
 import net.explorviz.model.application.Application;
 import net.explorviz.model.application.Clazz;
 import net.explorviz.model.application.Component;
@@ -24,10 +23,10 @@ import net.explorviz.server.security.Secured;
 
 @Secured
 @Path("/landscape")
-public class ArchConfCheckRessource extends ModelLandscapeResource {
+public class ArchConfCheckRessource {
 
 	private final ExtensionAPIImpl api = ExtensionAPI.get();
-	private final String MODEL_REPOSITORY = super.getModelRepository();
+	private final String MODEL_REPOSITORY = "modellRepository";
 	private static final String saveAs = "status";
 
 	@GET
