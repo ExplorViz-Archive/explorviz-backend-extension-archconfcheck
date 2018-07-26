@@ -337,6 +337,8 @@ public class ArchConfCheckRessource {
 						if (monitoredNode.getName() != null && modeledNode.getName() != null) {
 							if (monitoredNode.getName().equals(modeledNode.getName())) {
 								java.lang.System.out.println("und bei den nodes natürlich auch!");
+								// TODO hier mal die Änderungen von Alex einspeisen, aka display name und
+								// IPadresse nicht vergessen, sonst wird es wieder nur KACKE
 								final Node comparedNode = new Node();
 								comparedNode.setName(monitoredNode.getName());
 								comparedNode.setParent(comparedNG);
