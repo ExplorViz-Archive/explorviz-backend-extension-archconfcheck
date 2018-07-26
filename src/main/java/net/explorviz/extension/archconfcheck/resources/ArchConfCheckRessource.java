@@ -77,6 +77,9 @@ public class ArchConfCheckRessource {
 		// write a function that compares the entries of the landscape with each other
 		// and gives them attributes accordingly
 
+		// TODO remove for testing purposes only!
+		modelLandscape = api.getLatestLandscape();
+
 		confCheckedLandscape = calculateArchConfCheckLandscape(monitoredLandscape, modelLandscape);
 
 		java.lang.System.out.println("ich bin durch den Vergleich durch gekommen, aber leider nein?");
@@ -111,6 +114,8 @@ public class ArchConfCheckRessource {
 						if (child1.getName().equals(child2.getName())) {
 
 							// there is a system in each landscape with the same name
+							java.lang.System.out
+									.println("ich finde es sind die gleichen Namen und jetzt werden Sachen angelegt");
 							final System comparedSystem = new System();
 							comparedSystem.initializeID();
 							comparedSystem.setName(child1.getName());
@@ -118,6 +123,8 @@ public class ArchConfCheckRessource {
 							comparedSystem.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
 							// now the following subcategories can be anything! oO
 							checkNodegroups(comparedSystem, child1, child2);
+							java.lang.System.out
+									.println("ich bin durch alle unteraufrufe für diese zwei streitknoten durch");
 							calculatedLandscape.getSystems().add(comparedSystem);
 							compareCheck = true;
 							break;
@@ -177,7 +184,9 @@ public class ArchConfCheckRessource {
 				"ich weiß doch auch nicht welche dieser ganzen tollen aufrufe tatsächlich gemacht werden DEBUGGING FTW");
 		if (system != null) {
 			for (final NodeGroup nodeGroup : system.getNodeGroups()) {
-				final NodeGroup comparedNG = nodeGroup;
+				final NodeGroup comparedNG = new NodeGroup();
+				comparedNG.setName(nodeGroup.getName());
+				comparedNG.setParent(comparedSystem);
 				comparedNG.getExtensionAttributes().put(saveAs, status);
 				setStatusOfNodes(comparedNG, nodeGroup, status);
 				comparedSystem.getNodeGroups().add(comparedNG);
@@ -188,7 +197,9 @@ public class ArchConfCheckRessource {
 	private void setStatusOfNodes(final NodeGroup comparedNodeGroup, final NodeGroup nodeGroup, final Status status) {
 		if (nodeGroup != null) {
 			for (final Node node : nodeGroup.getNodes()) {
-				final Node comparedNode = node;
+				final Node comparedNode = new Node();
+				comparedNode.setName(node.getName());
+				comparedNode.setParent(comparedNodeGroup);
 				comparedNode.getExtensionAttributes().put(saveAs, status);
 				setStatusOfApplications(comparedNode, node, status);
 				comparedNodeGroup.getNodes().add(comparedNode);
@@ -197,9 +208,12 @@ public class ArchConfCheckRessource {
 	}
 
 	private void setStatusOfApplications(final Node comparedNode, final Node node, final Status status) {
+		java.lang.System.out.println("das macht er hier mit null oder ???");
 		if (node != null) {
 			for (final Application app : node.getApplications()) {
-				final Application comparedApp = app;
+				final Application comparedApp = new Application();
+				comparedApp.setName(app.getName());
+				comparedApp.setParent(comparedNode);
 				comparedApp.getExtensionAttributes().put(saveAs, status);
 				setStatusOfChildComponents(comparedApp, app, status);
 				comparedNode.getApplications().add(comparedApp);
@@ -210,7 +224,10 @@ public class ArchConfCheckRessource {
 	private void setStatusOfChildComponents(final Application comparedApp, final Application app, final Status status) {
 		if (app != null) {
 			for (final Component component : app.getComponents()) {
-				final Component comparedComponent = component;
+				final Component comparedComponent = new Component();
+				comparedComponent.setName(component.getName());
+				comparedComponent.setFullQualifiedName(component.getFullQualifiedName());
+				comparedComponent.setBelongingApplication(comparedApp);
 				comparedComponent.getExtensionAttributes().put(saveAs, status);
 				setStatusOfComponents(comparedComponent, component, status);
 				app.getComponents().add(comparedComponent);
@@ -223,12 +240,21 @@ public class ArchConfCheckRessource {
 		if (component != null) {
 			for (final Component child : component.getChildren()) {
 				final Component comparedChild = child;
+				comparedChild.setName(child.getName());
+				comparedChild.setParentComponent(comparedComponent);
+				comparedChild.setFullQualifiedName(child.getFullQualifiedName());
 				comparedChild.getExtensionAttributes().put(saveAs, status);
 				setStatusOfComponents(comparedChild, child, status);
 				comparedComponent.getChildren().add(comparedChild);
 			}
 			for (final Clazz clazz : component.getClazzes()) {
-				final Clazz comparedClazz = clazz;
+				final Clazz comparedClazz = new Clazz();
+				comparedClazz.setFullQualifiedName(clazz.getFullQualifiedName());
+				comparedClazz.setName(clazz.getName());
+				// not needed for models but maybe in future and just for completion mentioned
+				// here:
+				// comparedClazz.setInstanceCount(clazz.getInstanceCount());
+				comparedClazz.setParent(comparedComponent);
 				comparedClazz.getExtensionAttributes().put(saveAs, status);
 				comparedComponent.getClazzes().add(comparedClazz);
 			}
@@ -246,7 +272,11 @@ public class ArchConfCheckRessource {
 					for (final NodeGroup modeledNG : modeledSystem.getNodeGroups()) {
 						if (monitoredNG.getName().equals(modeledNG.getName())) {
 							// this NG was ASMODELED
-							final NodeGroup comparedNG = monitoredNG;
+							java.lang.System.out
+									.println("auch bei den nodegroups finde ich das die beiden gleich heißen!");
+							final NodeGroup comparedNG = new NodeGroup();
+							comparedNG.setName(monitoredNG.getName());
+							comparedNG.setParent(comparedSystem);
 							comparedNG.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
 							checkNodes(comparedNG, monitoredNG, modeledNG);
 							comparedSystem.getNodeGroups().add(comparedNG);
@@ -257,7 +287,9 @@ public class ArchConfCheckRessource {
 					if (compareCheck == false) {
 						// now we know it is a NG that was not in the model but was in the monitored
 						// Data => WARNING
-						final NodeGroup comparedNG = monitoredNG;
+						final NodeGroup comparedNG = new NodeGroup();
+						comparedNG.setName(monitoredNG.getName());
+						comparedNG.setParent(comparedSystem);
 						comparedNG.getExtensionAttributes().put(saveAs, Status.WARNING);
 						setStatusOfNodes(comparedNG, monitoredNG, Status.WARNING);
 						comparedSystem.getNodeGroups().add(comparedNG);
@@ -279,7 +311,9 @@ public class ArchConfCheckRessource {
 					}
 					if (compareCheck == false) {
 						// we now know there is a NodeGroup that is a GHOST
-						final NodeGroup comparedNG = modeledNG;
+						final NodeGroup comparedNG = new NodeGroup();
+						comparedNG.setName(modeledNG.getName());
+						comparedNG.setParent(comparedSystem);
 						comparedNG.getExtensionAttributes().put(saveAs, Status.GHOST);
 						setStatusOfNodes(comparedNG, modeledNG, Status.GHOST);
 						comparedSystem.getNodeGroups().add(comparedNG);
@@ -293,23 +327,48 @@ public class ArchConfCheckRessource {
 	private void checkNodes(final NodeGroup comparedNG, final NodeGroup monitoredNG, final NodeGroup modeledNG) {
 		if (monitoredNG != null) {
 			for (final Node monitoredNode : monitoredNG.getNodes()) {
+				java.lang.System.out.println("kommt er hier rein ?");
 				boolean compareCheck = false;
 				if (modeledNG != null) {
 					for (final Node modeledNode : modeledNG.getNodes()) {
-						if (monitoredNode.getName().equals(modeledNode.getName())) {
-							// this NG was ASMODELED
-							final Node comparedNode = monitoredNode;
-							comparedNode.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
-							checkApplications(comparedNode, monitoredNode, modeledNode);
-							comparedNG.getNodes().add(comparedNode);
-							compareCheck = true;
-							break;
+						java.lang.System.out.println("kommt er oder hier rein ?");
+						java.lang.System.out.println("der erste und der zweite heißt: " + monitoredNode.getName() + " "
+								+ modeledNode.getName());
+						if (monitoredNode.getName() != null && modeledNode.getName() != null) {
+							if (monitoredNode.getName().equals(modeledNode.getName())) {
+								java.lang.System.out.println("und bei den nodes natürlich auch!");
+								final Node comparedNode = new Node();
+								comparedNode.setName(monitoredNode.getName());
+								comparedNode.setParent(comparedNG);
+								comparedNode.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
+								checkApplications(comparedNode, monitoredNode, modeledNode);
+								comparedNG.getNodes().add(comparedNode);
+								compareCheck = true;
+								break;
+							}
+						}
+						if (monitoredNode.getIpAddress() != null && modeledNode.getIpAddress() != null) {
+							if (monitoredNode.getIpAddress().equals(modeledNode.getIpAddress())) {
+								// this NG was ASMODELED
+								java.lang.System.out.println("und bei den nodes natürlich auch!");
+								final Node comparedNode = new Node();
+								comparedNode.setName(monitoredNode.getName());
+								comparedNode.setParent(comparedNG);
+								comparedNode.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
+								checkApplications(comparedNode, monitoredNode, modeledNode);
+								comparedNG.getNodes().add(comparedNode);
+								compareCheck = true;
+								break;
+							}
 						}
 					}
 					if (compareCheck == false) {
 						// now we know it is a NG that was not in the model but was in the monitored
 						// Data => WARNING
-						final Node comparedNode = monitoredNode;
+						final Node comparedNode = new Node();
+						comparedNode.setName(monitoredNode.getName());
+						comparedNode.setParent(comparedNG);
+						java.lang.System.out.println("kommt er hier rein fragezeichen!");
 						comparedNode.getExtensionAttributes().put(saveAs, Status.WARNING);
 						setStatusOfApplications(comparedNode, monitoredNode, Status.WARNING);
 						comparedNG.getNodes().add(comparedNode);
@@ -331,7 +390,9 @@ public class ArchConfCheckRessource {
 					}
 					if (compareCheck == false) {
 						// we now know there is a Node that is a GHOST
-						final Node comparedNode = modeledNode;
+						final Node comparedNode = new Node();
+						comparedNode.setName(modeledNode.getName());
+						comparedNode.setParent(comparedNG);
 						comparedNode.getExtensionAttributes().put(saveAs, Status.GHOST);
 						setStatusOfApplications(comparedNode, modeledNode, Status.GHOST);
 						comparedNG.getNodes().add(comparedNode);
@@ -349,7 +410,11 @@ public class ArchConfCheckRessource {
 					for (final Application modeledApplication : modeledNode.getApplications()) {
 						if (monitoredApplication.getName().equals(modeledApplication.getName())) {
 							// this Node was ASMODELED
-							final Application comparedApplication = monitoredApplication;
+							java.lang.System.out.println("okay auch die applications scheinen gleich zu heißen");
+							final Application comparedApplication = new Application();
+							comparedApplication.setName(monitoredApplication.getName());
+							comparedApplication.setParent(comparedNode);
+							comparedApplication.setProgrammingLanguage(monitoredApplication.getProgrammingLanguage());
 							comparedApplication.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
 							checkChildComponents(comparedApplication, monitoredApplication, modeledApplication);
 							comparedNode.getApplications().add(comparedApplication);
@@ -360,7 +425,10 @@ public class ArchConfCheckRessource {
 					if (compareCheck == false) {
 						// now we know it is a Node that was not in the model but was in the monitored
 						// Data => WARNINode
-						final Application comparedApplication = monitoredApplication;
+						final Application comparedApplication = new Application();
+						comparedApplication.setName(monitoredApplication.getName());
+						comparedApplication.setParent(comparedNode);
+						comparedApplication.setProgrammingLanguage(monitoredApplication.getProgrammingLanguage());
 						comparedApplication.getExtensionAttributes().put(saveAs, Status.WARNING);
 						setStatusOfChildComponents(comparedApplication, monitoredApplication, Status.WARNING);
 						comparedNode.getApplications().add(comparedApplication);
@@ -382,7 +450,10 @@ public class ArchConfCheckRessource {
 					}
 					if (compareCheck == false) {
 						// we now know there is a Application that is a GHOST
-						final Application comparedApplication = modeledApplication;
+						final Application comparedApplication = new Application();
+						comparedApplication.setName(modeledApplication.getName());
+						comparedApplication.setParent(comparedNode);
+						comparedApplication.setProgrammingLanguage(modeledApplication.getProgrammingLanguage());
 						comparedApplication.getExtensionAttributes().put(saveAs, Status.GHOST);
 						setStatusOfChildComponents(comparedApplication, modeledApplication, Status.GHOST);
 						comparedNode.getApplications().add(comparedApplication);
@@ -401,7 +472,11 @@ public class ArchConfCheckRessource {
 					for (final Component modeledComponent : modeledApplication.getComponents()) {
 						if (monitoredComponent.getFullQualifiedName().equals(modeledComponent.getFullQualifiedName())) {
 							// this Application was ASMODELED
-							final Component comparedComponent = monitoredComponent;
+							java.lang.System.out.println("und bei den nodes natürlich auch!");
+							final Component comparedComponent = new Component();
+							comparedComponent.setName(monitoredComponent.getName());
+							comparedComponent.setBelongingApplication(comparedApplication);
+							comparedComponent.setFullQualifiedName(monitoredComponent.getFullQualifiedName());
 							comparedComponent.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
 							checkComponents(comparedComponent, monitoredComponent, modeledComponent);
 							comparedApplication.getComponents().add(comparedComponent);
@@ -413,7 +488,10 @@ public class ArchConfCheckRessource {
 						// now we know it is a Application that was not in the model but was in the
 						// monitored
 						// Data => WARNIApplication
-						final Component comparedComponent = monitoredComponent;
+						final Component comparedComponent = new Component();
+						comparedComponent.setName(monitoredComponent.getName());
+						comparedComponent.setBelongingApplication(comparedApplication);
+						comparedComponent.setFullQualifiedName(monitoredComponent.getFullQualifiedName());
 						comparedComponent.getExtensionAttributes().put(saveAs, Status.WARNING);
 						setStatusOfComponents(comparedComponent, monitoredComponent, Status.WARNING);
 						comparedApplication.getComponents().add(comparedComponent);
@@ -435,7 +513,10 @@ public class ArchConfCheckRessource {
 					}
 					if (compareCheck == false) {
 						// we now know there is a Component that is a GHOST
-						final Component comparedComponent = modeledComponent;
+						final Component comparedComponent = new Component();
+						comparedComponent.setName(modeledComponent.getName());
+						comparedComponent.setBelongingApplication(comparedApplication);
+						comparedComponent.setFullQualifiedName(modeledComponent.getFullQualifiedName());
 						comparedComponent.getExtensionAttributes().put(saveAs, Status.GHOST);
 						setStatusOfComponents(comparedComponent, modeledComponent, Status.GHOST);
 						comparedApplication.getComponents().add(comparedComponent);
@@ -455,7 +536,11 @@ public class ArchConfCheckRessource {
 						if (monitoredChildComponent.getFullQualifiedName()
 								.equals(modeledChildComponent.getFullQualifiedName())) {
 							// this Component was ASMODELED
-							final Component comparedChildComponent = monitoredChildComponent;
+							java.lang.System.out.println("und bei den components natürlich auch!");
+							final Component comparedChildComponent = new Component();
+							comparedChildComponent.setName(monitoredChildComponent.getName());
+							comparedChildComponent.setFullQualifiedName(monitoredChildComponent.getFullQualifiedName());
+							comparedChildComponent.setParentComponent(comparedComponent);
 							comparedChildComponent.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
 							checkComponents(comparedChildComponent, monitoredChildComponent, modeledChildComponent);
 							comparedComponent.getChildren().add(comparedChildComponent);
@@ -467,7 +552,10 @@ public class ArchConfCheckRessource {
 						// now we know it is a Component that was not in the model but was in the
 						// monitored
 						// Data => WARNIComponent
-						final Component comparedChildComponent = monitoredChildComponent;
+						final Component comparedChildComponent = new Component();
+						comparedChildComponent.setName(monitoredChildComponent.getName());
+						comparedChildComponent.setFullQualifiedName(monitoredChildComponent.getFullQualifiedName());
+						comparedChildComponent.setParentComponent(comparedComponent);
 						comparedChildComponent.getExtensionAttributes().put(saveAs, Status.WARNING);
 						setStatusOfComponents(comparedChildComponent, monitoredChildComponent, Status.WARNING);
 						comparedComponent.getChildren().add(comparedChildComponent);
@@ -490,7 +578,10 @@ public class ArchConfCheckRessource {
 					}
 					if (compareCheck == false) {
 						// we now know there is a Component that is a GHOST
-						final Component comparedChildComponent = modeledChildComponent;
+						final Component comparedChildComponent = new Component();
+						comparedChildComponent.setName(modeledChildComponent.getName());
+						comparedChildComponent.setFullQualifiedName(modeledChildComponent.getFullQualifiedName());
+						comparedChildComponent.setParentComponent(comparedComponent);
 						comparedChildComponent.getExtensionAttributes().put(saveAs, Status.GHOST);
 						setStatusOfComponents(comparedChildComponent, modeledChildComponent, Status.GHOST);
 						comparedComponent.getChildren().add(comparedChildComponent);
@@ -506,8 +597,15 @@ public class ArchConfCheckRessource {
 				if (modeledComponent != null) {
 					for (final Clazz modeledClazz : modeledComponent.getClazzes()) {
 						if (monitoredClazz.getFullQualifiedName().equals(modeledClazz.getFullQualifiedName())) {
+							java.lang.System.out
+									.println("auch alle clazzes sind die selben BÄM jetzt sag mir wo du fliegst xD");
 							// this Clazz is ASMODELED
-							final Clazz comparedClazz = monitoredClazz;
+							final Clazz comparedClazz = new Clazz();
+							comparedClazz.setName(monitoredClazz.getName());
+							comparedClazz.setFullQualifiedName(monitoredClazz.getFullQualifiedName());
+							comparedClazz.setParent(comparedComponent);
+							// just here for completness reasons
+							// comparedClazz.setInstanceCount(monitoredClazz.getInstanceCount());
 							comparedClazz.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
 							// does not have any submodules (clazzes are ALWAYS leaves of the landscape
 							// tree)
@@ -520,7 +618,12 @@ public class ArchConfCheckRessource {
 						// now we know it is a Component that was not in the model but was in the
 						// monitored
 						// Data => WARNIComponent
-						final Clazz comparedClazz = monitoredClazz;
+						final Clazz comparedClazz = new Clazz();
+						comparedClazz.setName(monitoredClazz.getName());
+						comparedClazz.setFullQualifiedName(monitoredClazz.getFullQualifiedName());
+						comparedClazz.setParent(comparedComponent);
+						// just here for completness reasons
+						// comparedClazz.setInstanceCount(monitoredClazz.getInstanceCount());
 						comparedClazz.getExtensionAttributes().put(saveAs, Status.WARNING);
 						// does not have any submodules (clazzes are ALWAYS leaves of the landscape
 						// tree)
@@ -543,7 +646,12 @@ public class ArchConfCheckRessource {
 					}
 					if (compareCheck == false) {
 						// we now know there is a Component that is a GHOST
-						final Clazz comparedClazz = modeledClazz;
+						final Clazz comparedClazz = new Clazz();
+						comparedClazz.setName(modeledClazz.getName());
+						comparedClazz.setFullQualifiedName(modeledClazz.getFullQualifiedName());
+						comparedClazz.setParent(comparedComponent);
+						// just here for completness reasons
+						// comparedClazz.setInstanceCount(modeledClazz.getInstanceCount());
 						comparedClazz.getExtensionAttributes().put(saveAs, Status.GHOST);
 						// does not have any submodules (clazzes are ALWAYS leaves of the landscape
 						// tree)
