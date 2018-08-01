@@ -35,14 +35,10 @@ public class ArchConfCheckRessource {
 	@Path("/comparedModel/{timestamps}")
 	@Produces("application/vnd.api+json")
 	public Landscape getArchConfCheckLandscape(@PathParam("timestamps") final String timestamps) {
-		java.lang.System.out.println("ich habe eine Anfrage bekommen, die zwei dinger zu vergleichen: " + timestamps);
 		// this split can be done because it is convented like that!
 		// //(monitoredTimestamp-monitoredActions+modelTimestamp-modelActions)
 		final String monitoredString = timestamps.split("_")[0];
 		final String modelString = timestamps.split("_")[1];
-
-		java.lang.System.out.println("ich habe eine Anfrage bekommen, die zwei dinger zu vergleichen: "
-				+ monitoredString + " und " + modelString);
 
 		Landscape monitoredLandscape = null;
 		Landscape modelLandscape = null;
@@ -63,7 +59,6 @@ public class ArchConfCheckRessource {
 		if (modelFileList != null) {
 			for (final File f : modelFileList) {
 				final String filename = f.getName();
-				java.lang.System.out.println(filename + " und " + modelString);
 				if (filename.endsWith(".expl") && filename.equals(modelString + ".expl")) {
 					// first validation check -> filename
 					modelLandscape = api.getLandscape(Long.parseLong(modelString.split("-")[0]), MODEL_REPOSITORY);
@@ -82,8 +77,6 @@ public class ArchConfCheckRessource {
 
 		confCheckedLandscape = calculateArchConfCheckLandscape(monitoredLandscape, modelLandscape);
 
-		java.lang.System.out.println("ich bin durch den Vergleich durch gekommen, aber leider nein?");
-
 		return confCheckedLandscape;
 	}
 
@@ -98,24 +91,14 @@ public class ArchConfCheckRessource {
 
 		// all of this can be put into a wider range of methods?!!?
 		// just get some methods that work on BaseEntity and have switches!?
-		java.lang.System.out.println("also ich komme schonmal bis in den unteraufruf!");
 		if (monitoredLandscape != null) {
 			for (final net.explorviz.model.landscape.System child1 : monitoredLandscape.getSystems()) {
 				boolean compareCheck = false;
-				java.lang.System.out.println(
-						"ich finde einen tollen KINDknoten im ersten System mit dem tollen Namen: " + child1.getName());
 				if (modelLandscape != null) {
 					for (final net.explorviz.model.landscape.System child2 : modelLandscape.getSystems()) {
-						java.lang.System.out.println(
-								"auch das zweite system hat natürlich kinder und wenn nicht gibts ÄRger diese Heißen: ");
-						java.lang.System.out.println(
-								"auch das zweite system hat natürlich kinder und wenn nicht gibts ÄRger diese Heißen: "
-										+ child2.getName());
 						if (child1.getName().equals(child2.getName())) {
 
 							// there is a system in each landscape with the same name
-							java.lang.System.out
-									.println("ich finde es sind die gleichen Namen und jetzt werden Sachen angelegt");
 							final System comparedSystem = new System();
 							comparedSystem.initializeID();
 							comparedSystem.setName(child1.getName());
@@ -123,8 +106,6 @@ public class ArchConfCheckRessource {
 							comparedSystem.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
 							// now the following subcategories can be anything! oO
 							checkNodegroups(comparedSystem, child1, child2);
-							java.lang.System.out
-									.println("ich bin durch alle unteraufrufe für diese zwei streitknoten durch");
 							calculatedLandscape.getSystems().add(comparedSystem);
 							compareCheck = true;
 							break;
@@ -174,14 +155,10 @@ public class ArchConfCheckRessource {
 				}
 			}
 		}
-		java.lang.System.out.println(
-				"und ich habe bis nach dem ersten unteraufruf auch noch keine Probleme, wahrscheinlich aber schon!");
 		return calculatedLandscape;
 	}
 
 	private void setStatusOfNodegroups(final System comparedSystem, final System system, final Status status) {
-		java.lang.System.out.println(
-				"ich weiß doch auch nicht welche dieser ganzen tollen aufrufe tatsächlich gemacht werden DEBUGGING FTW");
 		if (system != null) {
 			for (final NodeGroup nodeGroup : system.getNodeGroups()) {
 				final NodeGroup comparedNG = new NodeGroup();
@@ -208,7 +185,6 @@ public class ArchConfCheckRessource {
 	}
 
 	private void setStatusOfApplications(final Node comparedNode, final Node node, final Status status) {
-		java.lang.System.out.println("das macht er hier mit null oder ???");
 		if (node != null) {
 			for (final Application app : node.getApplications()) {
 				final Application comparedApp = new Application();
@@ -263,8 +239,6 @@ public class ArchConfCheckRessource {
 
 	private void checkNodegroups(final System comparedSystem, final System monitoredSystem,
 			final System modeledSystem) {
-		java.lang.System.out.println(
-				"ich denke mal es gibt bestimmt Probleme, weil es einfach keine Kinder von manchen Sachen gibt und daher wird es einfach RICHTIG um die Ohren pfeifen!");
 		if (monitoredSystem != null) {
 			for (final NodeGroup monitoredNG : monitoredSystem.getNodeGroups()) {
 				boolean compareCheck = false;
@@ -272,8 +246,6 @@ public class ArchConfCheckRessource {
 					for (final NodeGroup modeledNG : modeledSystem.getNodeGroups()) {
 						if (monitoredNG.getName().equals(modeledNG.getName())) {
 							// this NG was ASMODELED
-							java.lang.System.out
-									.println("auch bei den nodegroups finde ich das die beiden gleich heißen!");
 							final NodeGroup comparedNG = new NodeGroup();
 							comparedNG.setName(monitoredNG.getName());
 							comparedNG.setParent(comparedSystem);
@@ -327,41 +299,19 @@ public class ArchConfCheckRessource {
 	private void checkNodes(final NodeGroup comparedNG, final NodeGroup monitoredNG, final NodeGroup modeledNG) {
 		if (monitoredNG != null) {
 			for (final Node monitoredNode : monitoredNG.getNodes()) {
-				java.lang.System.out.println("kommt er hier rein ?");
 				boolean compareCheck = false;
 				if (modeledNG != null) {
 					for (final Node modeledNode : modeledNG.getNodes()) {
-						java.lang.System.out.println("kommt er oder hier rein ?");
-						java.lang.System.out.println("der erste und der zweite heißt: " + monitoredNode.getName() + " "
-								+ modeledNode.getName());
-						if (monitoredNode.getName() != null && modeledNode.getName() != null) {
-							if (monitoredNode.getName().equals(modeledNode.getName())) {
-								java.lang.System.out.println("und bei den nodes natürlich auch!");
-								// TODO hier mal die Änderungen von Alex einspeisen, aka display name und
-								// IPadresse nicht vergessen, sonst wird es wieder nur KACKE
-								final Node comparedNode = new Node();
-								comparedNode.setName(monitoredNode.getName());
-								comparedNode.setParent(comparedNG);
-								comparedNode.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
-								checkApplications(comparedNode, monitoredNode, modeledNode);
-								comparedNG.getNodes().add(comparedNode);
-								compareCheck = true;
-								break;
-							}
-						}
-						if (monitoredNode.getIpAddress() != null && modeledNode.getIpAddress() != null) {
-							if (monitoredNode.getIpAddress().equals(modeledNode.getIpAddress())) {
-								// this NG was ASMODELED
-								java.lang.System.out.println("und bei den nodes natürlich auch!");
-								final Node comparedNode = new Node();
-								comparedNode.setName(monitoredNode.getName());
-								comparedNode.setParent(comparedNG);
-								comparedNode.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
-								checkApplications(comparedNode, monitoredNode, modeledNode);
-								comparedNG.getNodes().add(comparedNode);
-								compareCheck = true;
-								break;
-							}
+						if (monitoredNode.getDisplayName().equals(modeledNode.getDisplayName())) {
+							final Node comparedNode = new Node();
+							comparedNode.setName(monitoredNode.getName());
+							comparedNode.setParent(comparedNG);
+							comparedNode.setIpAddress(monitoredNode.getIpAddress());
+							comparedNode.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
+							checkApplications(comparedNode, monitoredNode, modeledNode);
+							comparedNG.getNodes().add(comparedNode);
+							compareCheck = true;
+							break;
 						}
 					}
 					if (compareCheck == false) {
@@ -370,6 +320,7 @@ public class ArchConfCheckRessource {
 						final Node comparedNode = new Node();
 						comparedNode.setName(monitoredNode.getName());
 						comparedNode.setParent(comparedNG);
+						comparedNode.setIpAddress(monitoredNode.getIpAddress());
 						java.lang.System.out.println("kommt er hier rein fragezeichen!");
 						comparedNode.getExtensionAttributes().put(saveAs, Status.WARNING);
 						setStatusOfApplications(comparedNode, monitoredNode, Status.WARNING);
@@ -384,7 +335,7 @@ public class ArchConfCheckRessource {
 				boolean compareCheck = false;
 				if (monitoredNG != null) {
 					for (final Node monitoredNode : monitoredNG.getNodes()) {
-						if (monitoredNode.getName().equals(modeledNode.getName())) {
+						if (monitoredNode.getDisplayName().equals(modeledNode.getDisplayName())) {
 							// was handled in the "forward" search!
 							compareCheck = true;
 							break;
@@ -395,6 +346,7 @@ public class ArchConfCheckRessource {
 						final Node comparedNode = new Node();
 						comparedNode.setName(modeledNode.getName());
 						comparedNode.setParent(comparedNG);
+						comparedNode.setIpAddress(modeledNode.getIpAddress());
 						comparedNode.getExtensionAttributes().put(saveAs, Status.GHOST);
 						setStatusOfApplications(comparedNode, modeledNode, Status.GHOST);
 						comparedNG.getNodes().add(comparedNode);
@@ -412,7 +364,6 @@ public class ArchConfCheckRessource {
 					for (final Application modeledApplication : modeledNode.getApplications()) {
 						if (monitoredApplication.getName().equals(modeledApplication.getName())) {
 							// this Node was ASMODELED
-							java.lang.System.out.println("okay auch die applications scheinen gleich zu heißen");
 							final Application comparedApplication = new Application();
 							comparedApplication.setName(monitoredApplication.getName());
 							comparedApplication.setParent(comparedNode);
@@ -474,7 +425,6 @@ public class ArchConfCheckRessource {
 					for (final Component modeledComponent : modeledApplication.getComponents()) {
 						if (monitoredComponent.getFullQualifiedName().equals(modeledComponent.getFullQualifiedName())) {
 							// this Application was ASMODELED
-							java.lang.System.out.println("und bei den nodes natürlich auch!");
 							final Component comparedComponent = new Component();
 							comparedComponent.setName(monitoredComponent.getName());
 							comparedComponent.setBelongingApplication(comparedApplication);
@@ -538,7 +488,6 @@ public class ArchConfCheckRessource {
 						if (monitoredChildComponent.getFullQualifiedName()
 								.equals(modeledChildComponent.getFullQualifiedName())) {
 							// this Component was ASMODELED
-							java.lang.System.out.println("und bei den components natürlich auch!");
 							final Component comparedChildComponent = new Component();
 							comparedChildComponent.setName(monitoredChildComponent.getName());
 							comparedChildComponent.setFullQualifiedName(monitoredChildComponent.getFullQualifiedName());
@@ -599,8 +548,6 @@ public class ArchConfCheckRessource {
 				if (modeledComponent != null) {
 					for (final Clazz modeledClazz : modeledComponent.getClazzes()) {
 						if (monitoredClazz.getFullQualifiedName().equals(modeledClazz.getFullQualifiedName())) {
-							java.lang.System.out
-									.println("auch alle clazzes sind die selben BÄM jetzt sag mir wo du fliegst xD");
 							// this Clazz is ASMODELED
 							final Clazz comparedClazz = new Clazz();
 							comparedClazz.setName(monitoredClazz.getName());
