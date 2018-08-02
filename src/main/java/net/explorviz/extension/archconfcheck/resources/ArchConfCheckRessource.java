@@ -12,6 +12,7 @@ import net.explorviz.api.ExtensionAPI;
 import net.explorviz.api.ExtensionAPIImpl;
 import net.explorviz.extension.archconfcheck.model.Status;
 import net.explorviz.model.application.Application;
+import net.explorviz.model.application.ApplicationCommunication;
 import net.explorviz.model.application.Clazz;
 import net.explorviz.model.application.Component;
 import net.explorviz.model.landscape.Landscape;
@@ -77,7 +78,11 @@ public class ArchConfCheckRessource {
 
 		confCheckedLandscape = calculateArchConfCheckLandscape(monitoredLandscape, modelLandscape);
 
-		return confCheckedLandscape;
+		// checkCommunications(confCheckedLandscape, monitoredLandscape,
+		// modelLandscape);
+		// TODO: rückgängig machen ist nur zum Testen des renderers!
+		// return confCheckedLandscape;
+		return monitoredLandscape;
 	}
 
 	private Landscape calculateArchConfCheckLandscape(final Landscape monitoredLandscape,
@@ -438,7 +443,7 @@ public class ArchConfCheckRessource {
 					}
 					if (compareCheck == false) {
 						// now we know it is a Application that was not in the model but was in the
-						// monitored
+						// monitored data
 						// Data => WARNIApplication
 						final Component comparedComponent = new Component();
 						comparedComponent.setName(monitoredComponent.getName());
@@ -605,6 +610,145 @@ public class ArchConfCheckRessource {
 						// does not have any submodules (clazzes are ALWAYS leaves of the landscape
 						// tree)
 						comparedComponent.getClazzes().add(comparedClazz);
+					}
+				}
+			}
+		}
+	}
+
+	private void checkCommunications(final Landscape comparedLandscape, final Landscape monitoredLandscape,
+			final Landscape modelledLandscape) {
+		// do magic code that somehow compares ALL the communications:
+		// go through all the communications in monitored and compare them to modelled,
+		// but wait, we need to check if they are ASMODELLED
+		// there is a couple of different methods used to go through the communications
+		// there are cummulated and aggregated where the first one is all communications
+		// between A and B and B and A; and the second one is All Communications between
+		// A and B but not the communications between B and A
+		if (comparedLandscape == null)
+			return;
+		// first we add all Communications from monitoredLandscape to comparedLandscape
+		if (comparedLandscape != null && monitoredLandscape != null) {
+			for (final System comparedSystem : comparedLandscape.getSystems()) {
+				for (final System monitoredSystem : monitoredLandscape.getSystems()) {
+					if (monitoredSystem.getName().equals(comparedSystem.getName())) {
+						for (final NodeGroup comparedNodeGroup : comparedSystem.getNodeGroups()) {
+							for (final NodeGroup monitoredNodeGroup : monitoredSystem.getNodeGroups()) {
+								if (comparedNodeGroup.getName().equals(monitoredNodeGroup.getName())) {
+									for (final Node comparedNode : comparedNodeGroup.getNodes()) {
+										for (final Node monitoredNode : monitoredNodeGroup.getNodes()) {
+											if (comparedNode.getName().equals(monitoredNode.getName())) {
+												for (final Application comparedApp : comparedNode.getApplications()) {
+													for (final Application monitoredApp : monitoredNode
+															.getApplications()) {
+														if (comparedApp.getName().equals(monitoredApp.getName())) {
+															for (final ApplicationCommunication monitoredAppCommunication : monitoredApp
+																	.getOutgoingApplicationCommunications()) {
+																final ApplicationCommunication comparedAppCommunication = new ApplicationCommunication();
+																comparedAppCommunication.setAverageResponseTime(
+																		monitoredAppCommunication
+																				.getAverageResponseTime());
+																comparedAppCommunication.setRequests(
+																		monitoredAppCommunication.getRequests());
+																comparedAppCommunication
+																		.setSourceApplication(monitoredAppCommunication
+																				.getSourceApplication());
+																comparedAppCommunication
+																		.setTargetApplication(monitoredAppCommunication
+																				.getTargetApplication());
+																comparedAppCommunication.getExtensionAttributes()
+																		.put(saveAs, Status.WARNING);
+																comparedApp.getOutgoingApplicationCommunications()
+																		.add(comparedAppCommunication);
+																comparedLandscape.getOutgoingApplicationCommunications()
+																		.add(comparedAppCommunication);
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		// now we do the reverse, now all added are GHOSTs if they are not yet added,
+		// otherwise they are ASMODELLED
+		boolean asModelled = false;
+		if (comparedLandscape != null && modelledLandscape != null) {
+			for (final System comparedSystem : comparedLandscape.getSystems()) {
+				for (final System modelledSystem : modelledLandscape.getSystems()) {
+					if (modelledSystem.getName().equals(comparedSystem.getName())) {
+						for (final NodeGroup comparedNodeGroup : comparedSystem.getNodeGroups()) {
+							for (final NodeGroup modelledNodeGroup : modelledSystem.getNodeGroups()) {
+								if (comparedNodeGroup.getName().equals(modelledNodeGroup.getName())) {
+									for (final Node comparedNode : comparedNodeGroup.getNodes()) {
+										for (final Node modelledNode : modelledNodeGroup.getNodes()) {
+											if (comparedNode.getName().equals(modelledNode.getName())) {
+												for (final Application comparedApp : comparedNode.getApplications()) {
+													for (final Application modelledApp : modelledNode
+															.getApplications()) {
+														if (comparedApp.getName().equals(modelledApp.getName())) {
+															for (final ApplicationCommunication modelledAppCommunication : modelledApp
+																	.getOutgoingApplicationCommunications()) {
+																// here we need to differentiate, if it already exists
+																// in the comparedApp, we need to change the Status and
+																// if it doesn't exist yet, we are safe to assume that
+																// it is in fact a GHOST
+																asModelled = false;
+																for (final ApplicationCommunication comparedAppCommunication : comparedApp
+																		.getOutgoingApplicationCommunications()) {
+																	if (modelledAppCommunication.getTargetApplication()
+																			.equals(comparedAppCommunication
+																					.getTargetApplication())) {
+																		comparedAppCommunication
+																				.getExtensionAttributes()
+																				.remove(saveAs);
+																		comparedAppCommunication
+																				.getExtensionAttributes()
+																				.put(saveAs, Status.ASMODELLED);
+																		// I sure hope it works in both locations, but
+																		// it should work as well in the
+																		// landscapes OutgoingApplicationCommunications
+																		asModelled = true;
+																		break;
+																	}
+																}
+																if (!asModelled) {
+																	final ApplicationCommunication comparedAppCommunication = new ApplicationCommunication();
+																	comparedAppCommunication.setAverageResponseTime(
+																			modelledAppCommunication
+																					.getAverageResponseTime());
+																	comparedAppCommunication.setRequests(
+																			modelledAppCommunication.getRequests());
+																	comparedAppCommunication.setSourceApplication(
+																			modelledAppCommunication
+																					.getSourceApplication());
+																	comparedAppCommunication.setTargetApplication(
+																			modelledAppCommunication
+																					.getTargetApplication());
+																	comparedAppCommunication.getExtensionAttributes()
+																			.put(saveAs, Status.GHOST);
+																	comparedApp.getOutgoingApplicationCommunications()
+																			.add(comparedAppCommunication);
+																	comparedLandscape
+																			.getOutgoingApplicationCommunications()
+																			.add(comparedAppCommunication);
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 			}
