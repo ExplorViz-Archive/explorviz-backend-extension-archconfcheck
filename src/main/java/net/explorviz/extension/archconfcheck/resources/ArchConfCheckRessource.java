@@ -78,11 +78,9 @@ public class ArchConfCheckRessource {
 
 		confCheckedLandscape = calculateArchConfCheckLandscape(monitoredLandscape, modelLandscape);
 
-		// checkCommunications(confCheckedLandscape, monitoredLandscape,
-		// modelLandscape);
-		// TODO: rückgängig machen ist nur zum Testen des renderers!
-		// return confCheckedLandscape;
-		return monitoredLandscape;
+		checkCommunications(confCheckedLandscape, monitoredLandscape, modelLandscape);
+		return confCheckedLandscape;
+
 	}
 
 	private Landscape calculateArchConfCheckLandscape(final Landscape monitoredLandscape,
@@ -628,40 +626,161 @@ public class ArchConfCheckRessource {
 		if (comparedLandscape == null)
 			return;
 		// first we add all Communications from monitoredLandscape to comparedLandscape
+		boolean doubleCommunications = false;
 		if (comparedLandscape != null && monitoredLandscape != null) {
 			for (final System comparedSystem : comparedLandscape.getSystems()) {
 				for (final System monitoredSystem : monitoredLandscape.getSystems()) {
 					if (monitoredSystem.getName().equals(comparedSystem.getName())) {
+						// java.lang.System.out.println("systems heißen gleich:" +
+						// comparedSystem.getName());
 						for (final NodeGroup comparedNodeGroup : comparedSystem.getNodeGroups()) {
 							for (final NodeGroup monitoredNodeGroup : monitoredSystem.getNodeGroups()) {
 								if (comparedNodeGroup.getName().equals(monitoredNodeGroup.getName())) {
+									// java.lang.System.out
+									// .println("nodegroups heißen gleich:" + comparedNodeGroup.getName());
 									for (final Node comparedNode : comparedNodeGroup.getNodes()) {
 										for (final Node monitoredNode : monitoredNodeGroup.getNodes()) {
-											if (comparedNode.getName().equals(monitoredNode.getName())) {
+											if (comparedNode.getDisplayName().equals(monitoredNode.getDisplayName())) {
+												// java.lang.System.out.println(
+												// "nodes heißen gleich:" + comparedNode.getDisplayName());
 												for (final Application comparedApp : comparedNode.getApplications()) {
 													for (final Application monitoredApp : monitoredNode
 															.getApplications()) {
 														if (comparedApp.getName().equals(monitoredApp.getName())) {
+															// java.lang.System.out.println("Applications heißen
+															// gleich:"
+															// + comparedApp.getName());
 															for (final ApplicationCommunication monitoredAppCommunication : monitoredApp
 																	.getOutgoingApplicationCommunications()) {
-																final ApplicationCommunication comparedAppCommunication = new ApplicationCommunication();
-																comparedAppCommunication.setAverageResponseTime(
-																		monitoredAppCommunication
-																				.getAverageResponseTime());
-																comparedAppCommunication.setRequests(
-																		monitoredAppCommunication.getRequests());
-																comparedAppCommunication
-																		.setSourceApplication(monitoredAppCommunication
-																				.getSourceApplication());
-																comparedAppCommunication
-																		.setTargetApplication(monitoredAppCommunication
-																				.getTargetApplication());
-																comparedAppCommunication.getExtensionAttributes()
-																		.put(saveAs, Status.WARNING);
-																comparedApp.getOutgoingApplicationCommunications()
-																		.add(comparedAppCommunication);
-																comparedLandscape.getOutgoingApplicationCommunications()
-																		.add(comparedAppCommunication);
+																doubleCommunications = false;
+																// I think this is stupid!xD
+																// for (final ApplicationCommunication
+																// existingComparedCommunication : comparedApp
+																// .getOutgoingApplicationCommunications()) {
+																// if (monitoredAppCommunication.getSourceApplication()
+																// .equals(existingComparedCommunication
+																// .getSourceApplication())
+																// && monitoredAppCommunication
+																// .getTargetApplication()
+																// .equals(existingComparedCommunication
+																// .getTargetApplication())) {
+																// doubleCommunications = true;
+																// java.lang.System.out.println(
+																// "ich habe eine Communication gefunden die schon so
+																// heißt.");
+																// }
+																// }
+																if (!doubleCommunications) {
+																	final ApplicationCommunication comparedAppCommunication = new ApplicationCommunication();
+																	// java.lang.System.out
+																	// .println("neue ApplicationCommunication:");
+																	// java.lang.System.out
+																	// .println(monitoredAppCommunication
+																	// .getSourceApplication().getName()
+																	// + "->"
+																	// + monitoredAppCommunication
+																	// .getTargetApplication()
+																	// .getName());#
+																	comparedAppCommunication.initializeID();
+																	comparedAppCommunication.setAverageResponseTime(
+																			monitoredAppCommunication
+																					.getAverageResponseTime());
+																	comparedAppCommunication.setRequests(
+																			monitoredAppCommunication.getRequests());
+																	// comparedAppCommunication.setSourceApplication(
+																	// monitoredAppCommunication
+																	// .getSourceApplication());
+																	// statt die sourceApplication setzen zu können
+																	// müssen wir sie jetzt finden und dann neu setzen
+																	// ist doch toll!
+																	// okay bei source geht das noch ganz easy aber
+																	// target könnte da ein ticken schwieriger werden ;)
+
+																	comparedAppCommunication
+																			.setSourceApplication(comparedApp);
+
+																	// java.lang.System.out
+																	// .println("neue Communication von:"
+																	// + monitoredAppCommunication
+																	// .getSourceApplication()
+																	// + " nach "
+																	// + monitoredAppCommunication
+																	// .getTargetApplication());
+
+																	// nun zum spaßigen Teil mit den tollen Suchen nach
+																	// dem Target xD juchuuu
+
+																	for (final System suchSystem : comparedLandscape
+																			.getSystems()) {
+																		for (final NodeGroup suchNodeGroup : suchSystem
+																				.getNodeGroups()) {
+																			for (final Node suchNode : suchNodeGroup
+																					.getNodes()) {
+																				for (final Application suchApp : suchNode
+																						.getApplications()) {
+																					if (suchApp.getName().equals(
+																							monitoredAppCommunication
+																									.getTargetApplication()
+																									.getName())
+																							&& suchNode.getDisplayName()
+																									.equals(monitoredAppCommunication
+																											.getTargetApplication()
+																											.getParent()
+																											.getDisplayName())
+																							&& suchNodeGroup.getName()
+																									.equals(monitoredAppCommunication
+																											.getTargetApplication()
+																											.getParent()
+																											.getParent()
+																											.getName())
+																							&& suchSystem.getName()
+																									.equals(monitoredAppCommunication
+																											.getTargetApplication()
+																											.getParent()
+																											.getParent()
+																											.getParent()
+																											.getName())) {
+																						// durch diese leicht
+																						// durchschaubare If-Abfrage
+																						// versichern wir, dass die
+																						// suchApp der TargetApp in
+																						// allen parentalen Ebenen die
+																						// gleichen Namen aufweisen und
+																						// das heißt wir können die neue
+																						// suchApp jetzt als TargetApp
+																						// eintragen #EZ
+																						comparedAppCommunication
+																								.setTargetApplication(
+																										suchApp);
+																					}
+																				}
+																			}
+																		}
+																	}
+
+																	// das war der alte und langweilige Weg, welcher
+																	// leider auch nicht funktionierte xD
+
+																	// comparedAppCommunication.setTargetApplication(
+																	// monitoredAppCommunication
+																	// .getTargetApplication());
+																	comparedAppCommunication.setTechnology(
+																			monitoredAppCommunication.getTechnology());
+																	// java.lang.System.out
+																	// .println("neue comparedCommunication von:"
+																	// + comparedAppCommunication
+																	// .getSourceApplication()
+																	// + " nach "
+																	// + comparedAppCommunication
+																	// .getTargetApplication());
+																	comparedAppCommunication.getExtensionAttributes()
+																			.put(saveAs, Status.WARNING);
+																	comparedApp.getOutgoingApplicationCommunications()
+																			.add(comparedAppCommunication);
+																	comparedLandscape
+																			.getOutgoingApplicationCommunications()
+																			.add(comparedAppCommunication);
+																}
 															}
 														}
 													}
@@ -676,8 +795,8 @@ public class ArchConfCheckRessource {
 				}
 			}
 		}
-		// now we do the reverse, now all added are GHOSTs if they are not yet added,
-		// otherwise they are ASMODELLED
+		// // now we do the reverse, now all added are GHOSTs if they are not yet added,
+		// // otherwise they are ASMODELLED
 		boolean asModelled = false;
 		if (comparedLandscape != null && modelledLandscape != null) {
 			for (final System comparedSystem : comparedLandscape.getSystems()) {
@@ -688,7 +807,7 @@ public class ArchConfCheckRessource {
 								if (comparedNodeGroup.getName().equals(modelledNodeGroup.getName())) {
 									for (final Node comparedNode : comparedNodeGroup.getNodes()) {
 										for (final Node modelledNode : modelledNodeGroup.getNodes()) {
-											if (comparedNode.getName().equals(modelledNode.getName())) {
+											if (comparedNode.getDisplayName().equals(modelledNode.getDisplayName())) {
 												for (final Application comparedApp : comparedNode.getApplications()) {
 													for (final Application modelledApp : modelledNode
 															.getApplications()) {
@@ -725,12 +844,61 @@ public class ArchConfCheckRessource {
 																					.getAverageResponseTime());
 																	comparedAppCommunication.setRequests(
 																			modelledAppCommunication.getRequests());
-																	comparedAppCommunication.setSourceApplication(
-																			modelledAppCommunication
-																					.getSourceApplication());
-																	comparedAppCommunication.setTargetApplication(
-																			modelledAppCommunication
-																					.getTargetApplication());
+
+																	comparedAppCommunication
+																			.setSourceApplication(comparedApp);
+
+																	// here we look for a targetsystem
+																	for (final System suchSystem : comparedLandscape
+																			.getSystems()) {
+																		for (final NodeGroup suchNodeGroup : suchSystem
+																				.getNodeGroups()) {
+																			for (final Node suchNode : suchNodeGroup
+																					.getNodes()) {
+																				for (final Application suchApp : suchNode
+																						.getApplications()) {
+																					if (suchApp.getName().equals(
+																							modelledAppCommunication
+																									.getTargetApplication()
+																									.getName())
+																							&& suchNode.getDisplayName()
+																									.equals(modelledAppCommunication
+																											.getTargetApplication()
+																											.getParent()
+																											.getDisplayName())
+																							&& suchNodeGroup.getName()
+																									.equals(modelledAppCommunication
+																											.getTargetApplication()
+																											.getParent()
+																											.getParent()
+																											.getName())
+																							&& suchSystem.getName()
+																									.equals(modelledAppCommunication
+																											.getTargetApplication()
+																											.getParent()
+																											.getParent()
+																											.getParent()
+																											.getName())) {
+																						// durch diese leicht
+																						// durchschaubare If-Abfrage
+																						// versichern wir, dass die
+																						// suchApp der TargetApp in
+																						// allen parentalen Ebenen die
+																						// gleichen Namen aufweisen und
+																						// das heißt wir können die neue
+																						// suchApp jetzt als TargetApp
+																						// eintragen #EZ
+																						comparedAppCommunication
+																								.setTargetApplication(
+																										suchApp);
+																					}
+																				}
+																			}
+																		}
+																	}
+
+																	comparedAppCommunication.setTechnology(
+																			modelledAppCommunication.getTechnology());
 																	comparedAppCommunication.getExtensionAttributes()
 																			.put(saveAs, Status.GHOST);
 																	comparedApp.getOutgoingApplicationCommunications()
