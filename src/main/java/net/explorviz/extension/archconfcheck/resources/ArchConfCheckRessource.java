@@ -1,6 +1,8 @@
 package net.explorviz.extension.archconfcheck.resources;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import javax.ws.rs.GET;
@@ -15,10 +17,12 @@ import net.explorviz.model.application.Application;
 import net.explorviz.model.application.ApplicationCommunication;
 import net.explorviz.model.application.Clazz;
 import net.explorviz.model.application.Component;
+import net.explorviz.model.helper.EProgrammingLanguage;
 import net.explorviz.model.landscape.Landscape;
 import net.explorviz.model.landscape.Node;
 import net.explorviz.model.landscape.NodeGroup;
 import net.explorviz.model.landscape.System;
+import net.explorviz.repository.helper.DummyLandscapeHelper;
 import net.explorviz.server.helper.FileSystemHelper;
 import net.explorviz.server.security.Secured;
 
@@ -70,11 +74,10 @@ public class ArchConfCheckRessource {
 			// error modelReplayRepository is empty
 		}
 
-		// write a function that compares the entries of the landscape with each other
-		// and gives them attributes accordingly
+		monitoredLandscape = api.getLatestLandscape();
 
-		// TODO remove for testing purposes only!
 		modelLandscape = api.getLatestLandscape();
+		// modelLandscape = copyLandscape(monitoredLandscape);
 
 		confCheckedLandscape = calculateArchConfCheckLandscape(monitoredLandscape, modelLandscape);
 
@@ -83,10 +86,313 @@ public class ArchConfCheckRessource {
 
 	}
 
+	private Landscape copyLandscape(final Landscape landscape) {
+		final Landscape copyLandscape = new Landscape();
+		for (final System system : landscape.getSystems()) {
+			final System copySystem = new System();
+			copySystem.setName(system.getName());
+			copySystem.setParent(copyLandscape);
+			copyLandscape.getSystems().add(copySystem);
+			for (final NodeGroup nodegroup : system.getNodeGroups()) {
+				final NodeGroup copyNG = new NodeGroup();
+				copyNG.setName(nodegroup.getName());
+				copyNG.setParent(copySystem);
+				copySystem.getNodeGroups().add(copyNG);
+				for (final Node node : nodegroup.getNodes()) {
+					final Node copyNode = new Node();
+					copyNode.setName(node.getName());
+					copyNode.setIpAddress(node.getIpAddress());
+					copyNode.setCpuUtilization(node.getCpuUtilization());
+					copyNode.setFreeRAM(node.getFreeRAM());
+					copyNode.setUsedRAM(node.getUsedRAM());
+					copyNode.setParent(copyNG);
+					copyNG.getNodes().add(copyNode);
+					for (final Application app : node.getApplications()) {
+						// reicht erstmal! xD
+						final Application copyApp = new Application();
+						copyApp.setLastUsage(app.getLastUsage());
+						copyApp.setName(app.getName());
+						// schwieriger als es hier aussieht!
+						// copyApp.setOutgoingApplicationCommunications();
+						copyApp.setProgrammingLanguage(app.getProgrammingLanguage());
+						copyApp.setParent(copyNode);
+					}
+				}
+			}
+		}
+
+		// now we can add all the communications!
+		for (final System system : landscape.getSystems()) {
+			for (final NodeGroup nodegroup : system.getNodeGroups()) {
+				for (final Node node : nodegroup.getNodes()) {
+					for (final Application app : node.getApplications()) {
+						for (final ApplicationCommunication appCom : app.getOutgoingApplicationCommunications()) {
+							final ApplicationCommunication copyAppCom = new ApplicationCommunication();
+							copyAppCom.setAverageResponseTime(appCom.getAverageResponseTime());
+							copyAppCom.setRequests(appCom.getRequests());
+							copyAppCom.setTechnology(appCom.getTechnology());
+							for (final System suchSystem : copyLandscape.getSystems()) {
+								for (final NodeGroup suchNodeGroup : suchSystem.getNodeGroups()) {
+									for (final Node suchNode : suchNodeGroup.getNodes()) {
+										for (final Application suchApp : suchNode.getApplications()) {
+											if (suchApp.getName().equals(appCom.getTargetApplication().getName())
+													&& suchNode.getDisplayName().equals(
+															appCom.getTargetApplication().getParent().getDisplayName())
+													&& suchNodeGroup.getName()
+															.equals(appCom.getTargetApplication().getParent()
+																	.getParent().getName())
+													&& suchSystem.getName().equals(appCom.getTargetApplication()
+															.getParent().getParent().getParent().getName())) {
+												// durch diese leicht
+												// durchschaubare If-Abfrage
+												// versichern wir, dass die
+												// suchApp der TargetApp in
+												// allen parentalen Ebenen die
+												// gleichen Namen aufweisen und
+												// das heiﬂt wir kˆnnen die neue
+												// suchApp jetzt als TargetApp
+												// eintragen #EZ
+												copyAppCom.setTargetApplication(suchApp);
+											}
+											if (suchApp.getName().equals(appCom.getSourceApplication().getName())
+													&& suchNode.getDisplayName().equals(
+															appCom.getSourceApplication().getParent().getDisplayName())
+													&& suchNodeGroup.getName()
+															.equals(appCom.getSourceApplication().getParent()
+																	.getParent().getName())
+													&& suchSystem.getName().equals(appCom.getSourceApplication()
+															.getParent().getParent().getParent().getName())) {
+												// hier kann man die Source app eintragen! #EZierThanEZ
+												copyAppCom.setSourceApplication(suchApp);
+												// #EZ #nomercy #computationalTimeWHAT?
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return copyLandscape;
+	}
+
+	// private void fillLandscape1(final Landscape landscape) {
+	// landscape.setOverallCalls(new Random().nextInt(300000));
+	//
+	// final System laLaLandSystem = createSystem("LaLaLand", landscape);
+	// final NodeGroup laLaLandNG = createNodeGroup("10.0.99.1 - 10.0.99.2",
+	// laLaLandSystem);
+	// final Node requestsNode = createNode("10.0.99.1", laLaLandNG);
+	// final Node node2Node = createNode("10.0.99.2", laLaLandNG);
+	// // final Application singingApp = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, requestsNode);
+	// // final Application dancingApp = createApplication("Dancing",
+	// // EProgrammingLanguage.JAVA, requestsNode);
+	// // final Application singing2App = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, node2Node);
+	// // final Application dancing2App = createApplication("Dancing",
+	// // EProgrammingLanguage.JAVA, node2Node);
+	//
+	// final System disney = createSystem("Disney", landscape);
+	// final NodeGroup characters = createNodeGroup("10.0.0.1 - 10.0.0.10", disney);
+	// final Node mickey = createNode("10.0.0.1", characters);
+	// final Node minni = createNode("10.0.0.2", characters);
+	// final Node donald = createNode("10.0.0.3", characters);
+	// final Node daisy = createNode("10.0.0.4", characters);
+	// final Node pluto = createNode("10.0.0.5", characters);
+	// final Node goofy = createNode("10.0.0.6", characters);
+	// final Node trick = createNode("10.0.0.7", characters);
+	// final Node tick = createNode("10.0.0.8", characters);
+	// final Node track = createNode("10.0.0.9", characters);
+	// final Node dagobert = createNode("10.0.0.10", characters);
+	// // final Application skillz = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, mickey);
+	// // final Application skillz2 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, minni);
+	// // final Application skillz3 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, donald);
+	// // final Application skillz4 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, daisy);
+	// // final Application skillz5 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, pluto);
+	// // final Application skillz6 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, goofy);
+	// // final Application skillz7 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, trick);
+	// // final Application skillz8 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, tick);
+	// // final Application skillz9 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, track);
+	// // final Application skillz0 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, dagobert);
+	//
+	// }
+	//
+	// private void fillLandscape2(final Landscape landscape) {
+	// landscape.setOverallCalls(new Random().nextInt(300000));
+	//
+	// final System laLaLandSystem = createSystem("LaLaLand", landscape);
+	// final NodeGroup laLaLandNG = createNodeGroup("10.0.99.1 - 10.0.99.2",
+	// laLaLandSystem);
+	// final Node requestsNode = createNode("10.0.99.1", laLaLandNG);
+	// final Node node2Node = createNode("10.0.99.2", laLaLandNG);
+	// // final Application singingApp = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, requestsNode);
+	// // final Application dancingApp = createApplication("Dancing",
+	// // EProgrammingLanguage.JAVA, requestsNode);
+	// // final Application singing2App = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, node2Node);
+	// // final Application dancing2App = createApplication("Dancing",
+	// // EProgrammingLanguage.JAVA, node2Node);
+	//
+	// final System disney = createSystem("Disney", landscape);
+	// final NodeGroup characters = createNodeGroup("10.0.0.1 - 10.0.0.10", disney);
+	// final Node mickey = createNode("10.0.0.1", characters);
+	// final Node minni = createNode("10.0.0.2", characters);
+	// final Node donald = createNode("10.0.0.3", characters);
+	// final Node daisy = createNode("10.0.0.4", characters);
+	// final Node pluto = createNode("10.0.0.5", characters);
+	// final Node tick = createNode("10.0.0.8", characters);
+	// final Node track = createNode("10.0.0.9", characters);
+	// final Node dagobert = createNode("10.0.0.10", characters);
+	// // final Application skillz = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, mickey);
+	// // final Application skillz2 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, minni);
+	// // final Application skillz3 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, donald);
+	// // final Application skillz4 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, daisy);
+	// // final Application skillz5 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, pluto);
+	// // final Application skillz8 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, tick);
+	// // final Application skillz9 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, track);
+	// // final Application skillz0 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, dagobert);
+	//
+	// final NodeGroup actors = createNodeGroup("10.0.21.100 - 10.0.21.255",
+	// laLaLandSystem);
+	// final Node smith = createNode("10.0.21.102", actors);
+	// final Node agent = createNode("10.0.21.106", actors);
+	// final Node dont = createNode("10.0.21.103", actors);
+	// final Node know = createNode("10.0.21.107", actors);
+	// // final Application actorsApp = createApplication("Acting",
+	// // EProgrammingLanguage.JAVA, smith);
+	// // final Application actorsApp1 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, smith);
+	// // final Application actorsApp2 = createApplication("Crying",
+	// // EProgrammingLanguage.JAVA, smith);
+	// // final Application actorsApp3 = createApplication("Acting",
+	// // EProgrammingLanguage.JAVA, agent);
+	// // final Application actorsApp4 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, agent);
+	// // final Application actorsApp5 = createApplication("Crying",
+	// // EProgrammingLanguage.JAVA, agent);
+	// // final Application actorsApp6 = createApplication("Acting",
+	// // EProgrammingLanguage.JAVA, dont);
+	// // final Application actorsApp7 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, dont);
+	// // final Application actorsApp8 = createApplication("Crying",
+	// // EProgrammingLanguage.JAVA, dont);
+	// // final Application actorsApp9 = createApplication("Acting",
+	// // EProgrammingLanguage.JAVA, know);
+	// // final Application actorsApp10 = createApplication("Singing",
+	// // EProgrammingLanguage.JAVA, know);
+	// // final Application actorsApp11 = createApplication("Crying",
+	// // EProgrammingLanguage.JAVA, know);
+	//
+	// createSystem("LaLaLands", landscape);
+	//
+	// }
+
+	// taken from LandscapeDummyCreator:
+	static int applicationId = 0;
+	static int formatFactor = 1024 * 1024 * 1024;
+
+	private static System createSystem(final String name, final Landscape parent) {
+		final System system = new System();
+		system.setName(name);
+		system.setParent(parent);
+		parent.getSystems().add(system);
+		return system;
+	}
+
+	private static NodeGroup createNodeGroup(final String name, final System parent) {
+		final NodeGroup nodeGroup = new NodeGroup();
+		nodeGroup.setName(name);
+		nodeGroup.setParent(parent);
+		parent.getNodeGroups().add(nodeGroup);
+		return nodeGroup;
+	}
+
+	private static Node createNode(final String ipAddress, final NodeGroup parent) {
+		final Node node = new Node();
+		node.setIpAddress(ipAddress);
+		node.setName(ipAddress);
+		node.setParent(parent);
+
+		// set random usage
+		node.setCpuUtilization(((double) DummyLandscapeHelper.getRandomNum(10, 100)) / 100);
+		node.setFreeRAM(((long) DummyLandscapeHelper.getRandomNum(1, 4)) * formatFactor);
+		node.setUsedRAM(((long) DummyLandscapeHelper.getRandomNum(1, 4)) * formatFactor);
+
+		// add it to the nodeGroup
+		parent.getNodes().add(node);
+
+		return node;
+	}
+
+	private static Application createApplication(final String name, final EProgrammingLanguage language,
+			final Node parent) {
+		final Application application = new Application();
+
+		applicationId = applicationId + 1;
+		application.setParent(parent);
+
+		application.setLastUsage(java.lang.System.currentTimeMillis());
+
+		application.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+
+		application.setName(name);
+		parent.getApplications().add(application);
+
+		return application;
+	}
+
+	private static ApplicationCommunication createApplicationCommunication(final Application source,
+			final Application target, final Landscape landscape, final int requests) {
+		final ApplicationCommunication communication = new ApplicationCommunication();
+		communication.setSourceApplication(source);
+		communication.setTargetApplication(target);
+		communication.setRequests(requests);
+		source.getOutgoingApplicationCommunications().add(communication);
+		landscape.getOutgoingApplicationCommunications().add(communication);
+
+		return communication;
+	}
+
+	private static Component createComponent(final String name, final Component parent, final Application app) {
+		final Component component = new Component();
+		component.initializeID();
+		component.setName(name);
+		component.setParentComponent(parent);
+		component.setBelongingApplication(app);
+		if (parent != null) {
+			component.setFullQualifiedName(parent.getFullQualifiedName() + "." + name);
+			parent.getChildren().add(component);
+		} else {
+			component.setFullQualifiedName(name);
+		}
+		return component;
+	}
+
 	private Landscape calculateArchConfCheckLandscape(final Landscape monitoredLandscape,
 			final Landscape modelLandscape) {
-
-		// TODO Do magic code that looks over the Communications
 
 		final Landscape calculatedLandscape = new Landscape();
 		calculatedLandscape.initializeID();
@@ -616,6 +922,8 @@ public class ArchConfCheckRessource {
 
 	private void checkCommunications(final Landscape comparedLandscape, final Landscape monitoredLandscape,
 			final Landscape modelledLandscape) {
+		int counter = 0;
+		int reversecounter = 0;
 		// do magic code that somehow compares ALL the communications:
 		// go through all the communications in monitored and compare them to modelled,
 		// but wait, we need to check if they are ASMODELLED
@@ -626,61 +934,68 @@ public class ArchConfCheckRessource {
 		if (comparedLandscape == null)
 			return;
 		// first we add all Communications from monitoredLandscape to comparedLandscape
-		boolean doubleCommunications = false;
+		final boolean doubleCommunications = false;
 		if (comparedLandscape != null && monitoredLandscape != null) {
 			for (final System comparedSystem : comparedLandscape.getSystems()) {
 				for (final System monitoredSystem : monitoredLandscape.getSystems()) {
 					if (monitoredSystem.getName().equals(comparedSystem.getName())) {
-						// java.lang.System.out.println("systems heiﬂen gleich:" +
-						// comparedSystem.getName());
+						java.lang.System.out.println("systems heiﬂen gleich:" + comparedSystem.getName());
 						for (final NodeGroup comparedNodeGroup : comparedSystem.getNodeGroups()) {
 							for (final NodeGroup monitoredNodeGroup : monitoredSystem.getNodeGroups()) {
 								if (comparedNodeGroup.getName().equals(monitoredNodeGroup.getName())) {
-									// java.lang.System.out
-									// .println("nodegroups heiﬂen gleich:" + comparedNodeGroup.getName());
+									java.lang.System.out
+											.println("nodegroups heiﬂen gleich:" + comparedNodeGroup.getName());
 									for (final Node comparedNode : comparedNodeGroup.getNodes()) {
 										for (final Node monitoredNode : monitoredNodeGroup.getNodes()) {
 											if (comparedNode.getDisplayName().equals(monitoredNode.getDisplayName())) {
-												// java.lang.System.out.println(
-												// "nodes heiﬂen gleich:" + comparedNode.getDisplayName());
+												java.lang.System.out.println(
+														"nodes heiﬂen gleich:" + comparedNode.getDisplayName());
 												for (final Application comparedApp : comparedNode.getApplications()) {
 													for (final Application monitoredApp : monitoredNode
 															.getApplications()) {
 														if (comparedApp.getName().equals(monitoredApp.getName())) {
-															// java.lang.System.out.println("Applications heiﬂen
-															// gleich:"
-															// + comparedApp.getName());
+															java.lang.System.out.println("Applications heiﬂen gleich:"
+																	+ comparedApp.getName());
+															final List<ApplicationCommunication> listOfCom = new ArrayList();
 															for (final ApplicationCommunication monitoredAppCommunication : monitoredApp
 																	.getOutgoingApplicationCommunications()) {
-																doubleCommunications = false;
-																// I think this is stupid!xD
-																// for (final ApplicationCommunication
-																// existingComparedCommunication : comparedApp
-																// .getOutgoingApplicationCommunications()) {
-																// if (monitoredAppCommunication.getSourceApplication()
-																// .equals(existingComparedCommunication
-																// .getSourceApplication())
-																// && monitoredAppCommunication
-																// .getTargetApplication()
-																// .equals(existingComparedCommunication
-																// .getTargetApplication())) {
-																// doubleCommunications = true;
-																// java.lang.System.out.println(
-																// "ich habe eine Communication gefunden die schon so
-																// heiﬂt.");
-																// }
-																// }
-																if (!doubleCommunications) {
+																// schleife zum verhindern doppelter Eintr‰ge (wer w¸rde
+																// denn sowas machen ?)
+																boolean doppelteCom = false;
+																for (final ApplicationCommunication doubleAppCom : listOfCom) {
+																	if (doubleAppCom == monitoredAppCommunication)
+																		doppelteCom = true;
+																}
+																if (!doppelteCom) {
+																	listOfCom.add(monitoredAppCommunication);
+
+																	java.lang.System.out
+																			.println("# of coms:" + monitoredApp
+																					.getOutgoingApplicationCommunications()
+																					.size());
 																	final ApplicationCommunication comparedAppCommunication = new ApplicationCommunication();
-																	// java.lang.System.out
-																	// .println("neue ApplicationCommunication:");
-																	// java.lang.System.out
-																	// .println(monitoredAppCommunication
-																	// .getSourceApplication().getName()
-																	// + "->"
-																	// + monitoredAppCommunication
-																	// .getTargetApplication()
-																	// .getName());#
+																	counter += 1;
+																	java.lang.System.out
+																			.println("neue ApplicationCommunication:");
+																	java.lang.System.out
+																			.println(monitoredAppCommunication
+																					.getSourceApplication().getParent()
+																					.getParent().getParent().getName()
+																					+ "//"
+																					+ monitoredAppCommunication
+																							.getSourceApplication()
+																							.getParent().getParent()
+																							.getName()
+																					+ "//"
+																					+ monitoredAppCommunication
+																							.getSourceApplication()
+																							.getParent()
+																							.getDisplayName()
+																					+ "//"
+																					+ monitoredAppCommunication
+																							.getSourceApplication()
+																							.getName()
+																					+ "->");
 																	comparedAppCommunication.initializeID();
 																	comparedAppCommunication.setAverageResponseTime(
 																			monitoredAppCommunication
@@ -749,9 +1064,34 @@ public class ArchConfCheckRessource {
 																						// das heiﬂt wir kˆnnen die neue
 																						// suchApp jetzt als TargetApp
 																						// eintragen #EZ
+
+																						java.lang.System.out.println(
+																								monitoredAppCommunication
+																										.getTargetApplication()
+																										.getParent()
+																										.getParent()
+																										.getParent()
+																										.getName()
+																										+ "//"
+																										+ monitoredAppCommunication
+																												.getTargetApplication()
+																												.getParent()
+																												.getParent()
+																												.getName()
+																										+ "//"
+																										+ monitoredAppCommunication
+																												.getTargetApplication()
+																												.getParent()
+																												.getDisplayName()
+																										+ "//"
+																										+ monitoredAppCommunication
+																												.getTargetApplication()
+																												.getName());
+
 																						comparedAppCommunication
 																								.setTargetApplication(
 																										suchApp);
+																						break;
 																					}
 																				}
 																			}
@@ -774,7 +1114,7 @@ public class ArchConfCheckRessource {
 																	// + comparedAppCommunication
 																	// .getTargetApplication());
 																	comparedAppCommunication.getExtensionAttributes()
-																			.put(saveAs, Status.WARNING);
+																			.put(saveAs, Status.ASMODELLED);
 																	comparedApp.getOutgoingApplicationCommunications()
 																			.add(comparedAppCommunication);
 																	comparedLandscape
@@ -819,26 +1159,81 @@ public class ArchConfCheckRessource {
 																// if it doesn't exist yet, we are safe to assume that
 																// it is in fact a GHOST
 																asModelled = false;
-																for (final ApplicationCommunication comparedAppCommunication : comparedApp
-																		.getOutgoingApplicationCommunications()) {
-																	if (modelledAppCommunication.getTargetApplication()
-																			.equals(comparedAppCommunication
-																					.getTargetApplication())) {
-																		comparedAppCommunication
-																				.getExtensionAttributes()
-																				.remove(saveAs);
-																		comparedAppCommunication
-																				.getExtensionAttributes()
-																				.put(saveAs, Status.ASMODELLED);
-																		// I sure hope it works in both locations, but
-																		// it should work as well in the
-																		// landscapes OutgoingApplicationCommunications
-																		asModelled = true;
-																		break;
+
+																final List<ApplicationCommunication> listOfCom = new ArrayList();
+
+																boolean doppelteCom = false;
+																for (final ApplicationCommunication doubleAppCom : listOfCom) {
+																	if (doubleAppCom == modelledAppCommunication) {
+																		doppelteCom = true;
+																	}
+																}
+																if (!doppelteCom) {
+																	listOfCom.add(modelledAppCommunication);
+
+																	for (final ApplicationCommunication comparedAppCommunication : comparedApp
+																			.getOutgoingApplicationCommunications()) {
+																		if (modelledAppCommunication
+																				.getTargetApplication().getName()
+																				.equals(comparedAppCommunication
+																						.getTargetApplication()
+																						.getName())
+																				&& modelledAppCommunication
+																						.getTargetApplication()
+																						.getParent().getDisplayName()
+																						.equals(comparedAppCommunication
+																								.getTargetApplication()
+																								.getParent()
+																								.getDisplayName())
+																				&& modelledAppCommunication
+																						.getTargetApplication()
+																						.getParent().getParent()
+																						.getName()
+																						.equals(comparedAppCommunication
+																								.getTargetApplication()
+																								.getParent().getParent()
+																								.getName())
+																				&& modelledAppCommunication
+																						.getTargetApplication()
+																						.getParent().getParent()
+																						.getParent().getName()
+																						.equals(comparedAppCommunication
+																								.getTargetApplication()
+																								.getParent().getParent()
+																								.getParent()
+																								.getName())) {
+																			// java.lang.System.out
+																			// .println(comparedAppCommunication
+																			// .getExtensionAttributes()
+																			// .get(saveAs));
+																			comparedAppCommunication
+																					.getExtensionAttributes()
+																					.remove(saveAs);
+																			// java.lang.System.out
+																			// .println(comparedAppCommunication
+																			// .getExtensionAttributes()
+																			// .get(saveAs));
+																			comparedAppCommunication
+																					.getExtensionAttributes()
+																					.put(saveAs, Status.ASMODELLED);
+																			// java.lang.System.out
+																			// .println(comparedAppCommunication
+																			// .getExtensionAttributes()
+																			// .get(saveAs));
+																			// I sure hope it works in both locations,
+																			// but
+																			// it should work as well in the
+																			// landscapes
+																			// OutgoingApplicationCommunications
+																			asModelled = true;
+																			reversecounter += 1;
+																			break;
+																		}
 																	}
 																}
 																if (!asModelled) {
 																	final ApplicationCommunication comparedAppCommunication = new ApplicationCommunication();
+																	reversecounter += 1;
 																	comparedAppCommunication.setAverageResponseTime(
 																			modelledAppCommunication
 																					.getAverageResponseTime());
@@ -891,6 +1286,7 @@ public class ArchConfCheckRessource {
 																						comparedAppCommunication
 																								.setTargetApplication(
 																										suchApp);
+																						break;
 																					}
 																				}
 																			}
@@ -921,5 +1317,6 @@ public class ArchConfCheckRessource {
 				}
 			}
 		}
+		java.lang.System.out.println("counter: " + counter + " reverse: " + reversecounter);
 	}
 }
