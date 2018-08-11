@@ -52,8 +52,6 @@ public class ArchConfCheckRessource {
 		// open the two files, and serialize them into landscapes
 
 		// open the file of the monitored Landscape
-		// TODO change from latest Landscape to an actual landscape from the repository
-		monitoredLandscape = api.getLatestLandscape();
 
 		// open file of the model
 
@@ -74,16 +72,347 @@ public class ArchConfCheckRessource {
 			// error modelReplayRepository is empty
 		}
 
+		// TODO change from latest Landscape to an actual landscape from the repository
 		monitoredLandscape = api.getLatestLandscape();
 
-		modelLandscape = api.getLatestLandscape();
-		// modelLandscape = copyLandscape(monitoredLandscape);
+		// this way I can alter any one Landscape without interfering with the other
+		// one!
+		modelLandscape = copyLandscape(monitoredLandscape);
+		monitoredLandscape = copyLandscape(modelLandscape);
+
+		alterLandscape1(modelLandscape);
+		alterLandscape2(monitoredLandscape);
 
 		confCheckedLandscape = calculateArchConfCheckLandscape(monitoredLandscape, modelLandscape);
-
 		checkCommunications(confCheckedLandscape, monitoredLandscape, modelLandscape);
 		return confCheckedLandscape;
+		// return modelLandscape;
 
+	}
+
+	private void alterLandscape2(final Landscape landscape) {
+		final System system1 = new System();
+		system1.setName("Webshop2.0");
+		system1.setParent(landscape);
+		landscape.getSystems().add(system1);
+
+		final NodeGroup nodegroup1 = new NodeGroup();
+		nodegroup1.setName("100.0.1.200 - 100.0.1.250");
+		nodegroup1.setParent(system1);
+		system1.getNodeGroups().add(nodegroup1);
+
+		final Node node1 = new Node();
+		node1.setIpAddress("100.0.1.201");
+		node1.setName("webshop.server1");
+		node1.setCpuUtilization(20.5);
+		node1.setFreeRAM(500);
+		node1.setUsedRAM(1500);
+		node1.setParent(nodegroup1);
+		nodegroup1.getNodes().add(node1);
+
+		final Node node2 = new Node();
+		node2.setIpAddress("100.0.1.215");
+		node2.setName("webshop.server2");
+		node2.setCpuUtilization(20.5);
+		node2.setFreeRAM(500);
+		node2.setUsedRAM(2500);
+		node2.setParent(nodegroup1);
+		nodegroup1.getNodes().add(node2);
+
+		final Node node3 = new Node();
+		node3.setIpAddress("100.0.1.226");
+		node3.setName("webshop.server3");
+		node3.setCpuUtilization(30.5);
+		node3.setFreeRAM(500);
+		node3.setUsedRAM(3500);
+		node3.setParent(nodegroup1);
+		nodegroup1.getNodes().add(node3);
+
+		final Node node4 = new Node();
+		node4.setIpAddress("100.0.1.255");
+		node4.setName("mysterous server");
+		node4.setCpuUtilization(40.5);
+		node4.setFreeRAM(500);
+		node4.setUsedRAM(4500);
+		node4.setParent(nodegroup1);
+		nodegroup1.getNodes().add(node4);
+
+		final Application app1 = new Application();
+		app1.setName("unsuspicousApp");
+		app1.setLastUsage(123);
+		app1.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		app1.setParent(node1);
+		node1.getApplications().add(app1);
+
+		final Application app2 = new Application();
+		app2.setName("unsuspicousApp");
+		app2.setLastUsage(223);
+		app2.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		app2.setParent(node2);
+		node2.getApplications().add(app2);
+
+		final Application app3 = new Application();
+		app3.setName("unsuspicousApp");
+		app3.setLastUsage(323);
+		app3.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		app3.setParent(node3);
+		node3.getApplications().add(app3);
+
+		final Application app4 = new Application();
+		app4.setName("suspicousApp");
+		app4.setLastUsage(423);
+		app4.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		app4.setParent(node4);
+		node4.getApplications().add(app4);
+
+		final Application app42 = createApplication("totallyunsuspicousApp", EProgrammingLanguage.JAVA, node1);
+
+		createApplicationCommunication(app42, app4, landscape, 250);
+
+		final Component comp1 = createComponent("nothing2C", null, app42);
+		app42.getComponents().add(comp1);
+		final Component comp2 = createComponent("MainComponent", null, app42);
+		app42.getComponents().add(comp2);
+		final Component comp3 = createComponent("MeanComponent", null, app42);
+		app42.getComponents().add(comp3);
+		final Component comp4 = createComponent("Shop4RealMoney", null, app42);
+		app42.getComponents().add(comp4);
+		final Component comp5 = createComponent("MikroTransaktions", null, app42);
+		app42.getComponents().add(comp5);
+		final Component comp6 = createComponent("MikroTransaktions", comp5, app42);
+		final Component comp7 = createComponent("SmallTransaktions", comp5, app42);
+		final Component comp8 = createComponent("HugeFisch", comp5, app42);
+		final Component comp9 = createComponent("TrueStory", comp5, app42);
+		// final Component comp10 = createComponent("financialComponent", comp6, null);
+		// final Component comp11 = createComponent("financialComponent", comp7, null);
+		// final Component comp12 = createComponent("financialComponent", comp8, null);
+		// final Component comp13 = createComponent("financialComponent", comp9, null);
+		// createClazz("financialDecoy", comp10, 10);
+		// createClazz("financialDecoy", comp11, 10);
+		// createClazz("financialDecoy", comp12, 10);
+		// createClazz("financialDecoy", comp13, 10);
+
+		final ApplicationCommunication appcom1 = new ApplicationCommunication();
+		appcom1.setRequests(100);
+		appcom1.setSourceApplication(app1);
+		appcom1.setTargetApplication(app2);
+		app1.getOutgoingApplicationCommunications().add(appcom1);
+
+		final ApplicationCommunication appcom2 = new ApplicationCommunication();
+		appcom2.setRequests(100);
+		appcom2.setSourceApplication(app2);
+		appcom2.setTargetApplication(app3);
+		app2.getOutgoingApplicationCommunications().add(appcom2);
+
+		final ApplicationCommunication appcom3 = new ApplicationCommunication();
+		appcom3.setRequests(100);
+		appcom3.setSourceApplication(app3);
+		appcom3.setTargetApplication(app4);
+		app3.getOutgoingApplicationCommunications().add(appcom3);
+
+		final ApplicationCommunication appcom4 = new ApplicationCommunication();
+		appcom4.setRequests(100);
+		appcom4.setSourceApplication(app1);
+		appcom4.setTargetApplication(app4);
+		app1.getOutgoingApplicationCommunications().add(appcom4);
+
+		final ApplicationCommunication appcom5 = new ApplicationCommunication();
+		appcom5.setRequests(100);
+		appcom5.setSourceApplication(app1);
+		appcom5.setTargetApplication(app3);
+		app1.getOutgoingApplicationCommunications().add(appcom5);
+
+		final ApplicationCommunication appcom6 = new ApplicationCommunication();
+		appcom6.setRequests(100);
+		appcom6.setSourceApplication(app2);
+		appcom6.setTargetApplication(app4);
+		app2.getOutgoingApplicationCommunications().add(appcom6);
+
+		final ApplicationCommunication appcom7 = new ApplicationCommunication();
+		appcom7.setRequests(888);
+		appcom7.setSourceApplication(app4);
+		appcom7.setTargetApplication(
+				landscape.getSystems().get(3).getNodeGroups().get(0).getNodes().get(0).getApplications().get(0));
+		app4.getOutgoingApplicationCommunications().add(appcom7);
+
+		final System system2 = new System();
+		system2.setName("HanaDB");
+		system2.setParent(landscape);
+		landscape.getSystems().add(system2);
+
+		final NodeGroup nodegroup2 = new NodeGroup();
+		nodegroup2.setName("10.0.5.1");
+		nodegroup2.setParent(system2);
+		system2.getNodeGroups().add(nodegroup2);
+
+		final Node node5 = new Node();
+		node5.setName("10.0.5.1");
+		node5.setIpAddress("10.0.5.1");
+		node5.setParent(nodegroup2);
+		nodegroup2.getNodes().add(node5);
+
+		final Application app5 = new Application();
+		app5.setName("Interface");
+		app5.setParent(node5);
+		app5.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		node5.getApplications().add(app5);
+
+		final NodeGroup nodegroup3 = new NodeGroup();
+		nodegroup3.setName("10.0.5.1");
+		nodegroup3.setParent(system2);
+		system2.getNodeGroups().add(nodegroup3);
+
+		final Node node6 = new Node();
+		node6.setName("10.0.6.1");
+		node6.setIpAddress("10.0.6.1");
+		node6.setParent(nodegroup2);
+		nodegroup3.getNodes().add(node6);
+
+		final Application app6 = new Application();
+		app6.setName("Database");
+		app6.setParent(node5);
+		app6.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		node6.getApplications().add(app6);
+
+		final Node node7 = new Node();
+		node7.setName("10.0.6.2");
+		node7.setIpAddress("10.0.6.2");
+		node7.setParent(nodegroup3);
+		nodegroup3.getNodes().add(node7);
+
+		final Application app7 = new Application();
+		app7.setName("Database Webconnector");
+		app7.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		app7.setParent(node7);
+		node7.getApplications().add(app7);
+
+		final ApplicationCommunication appcom8 = new ApplicationCommunication();
+		appcom8.setRequests(555);
+		appcom8.setSourceApplication(app5);
+		appcom8.setTargetApplication(app6);
+		app5.getOutgoingApplicationCommunications().add(appcom8);
+
+		final ApplicationCommunication appcom9 = new ApplicationCommunication();
+		appcom9.setRequests(555);
+		appcom9.setSourceApplication(app5);
+		appcom9.setTargetApplication(app7);
+		app5.getOutgoingApplicationCommunications().add(appcom9);
+
+		final ApplicationCommunication appcom10 = new ApplicationCommunication();
+		appcom10.setRequests(555);
+		appcom10.setSourceApplication(app7);
+		appcom10.setTargetApplication(app4);
+		app7.getOutgoingApplicationCommunications().add(appcom10);
+	}
+
+	private void alterLandscape1(final Landscape landscape) {
+		final System system1 = new System();
+		system1.setName("Webshop2.0");
+		system1.setParent(landscape);
+		landscape.getSystems().add(system1);
+
+		final NodeGroup nodegroup1 = new NodeGroup();
+		nodegroup1.setName("100.0.1.200 - 100.0.1.250");
+		nodegroup1.setParent(system1);
+		system1.getNodeGroups().add(nodegroup1);
+
+		final Node node1 = new Node();
+		node1.setIpAddress("100.0.1.201");
+		node1.setName("webshop.server1");
+		node1.setCpuUtilization(20.5);
+		node1.setFreeRAM(500);
+		node1.setUsedRAM(1500);
+		node1.setParent(nodegroup1);
+		nodegroup1.getNodes().add(node1);
+
+		final Node node2 = new Node();
+		node2.setIpAddress("100.0.1.215");
+		node2.setName("webshop.server2");
+		node2.setCpuUtilization(20.5);
+		node2.setFreeRAM(500);
+		node2.setUsedRAM(2500);
+		node2.setParent(nodegroup1);
+		nodegroup1.getNodes().add(node2);
+
+		final Node node3 = new Node();
+		node3.setIpAddress("100.0.1.226");
+		node3.setName("webshop.server3");
+		node3.setCpuUtilization(30.5);
+		node3.setFreeRAM(500);
+		node3.setUsedRAM(3500);
+		node3.setParent(nodegroup1);
+		nodegroup1.getNodes().add(node3);
+
+		final Node node4 = createNode("unsuspicousCommunicator", nodegroup1);
+		final Application app0 = createApplication("communicator2.0", EProgrammingLanguage.PERL, node4);
+
+		final Application app1 = new Application();
+		app1.setName("unsuspicousApp");
+		app1.setLastUsage(123);
+		app1.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		app1.setParent(node1);
+		node1.getApplications().add(app1);
+
+		final Application app2 = new Application();
+		app2.setName("unsuspicousApp");
+		app2.setLastUsage(223);
+		app2.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		app2.setParent(node2);
+		node2.getApplications().add(app2);
+
+		final Application app3 = new Application();
+		app3.setName("unsuspicousApp");
+		app3.setLastUsage(323);
+		app3.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		app3.setParent(node3);
+		node3.getApplications().add(app3);
+
+		final Application app4 = createApplication("extension", EProgrammingLanguage.JAVA, node3);
+
+		createApplicationCommunication(app0, app4, landscape, 200);
+
+		final ApplicationCommunication appcom1 = new ApplicationCommunication();
+		appcom1.setRequests(100);
+		appcom1.setSourceApplication(app1);
+		appcom1.setTargetApplication(app2);
+		app1.getOutgoingApplicationCommunications().add(appcom1);
+
+		final ApplicationCommunication appcom2 = new ApplicationCommunication();
+		appcom2.setRequests(100);
+		appcom2.setSourceApplication(app2);
+		appcom2.setTargetApplication(app3);
+		app2.getOutgoingApplicationCommunications().add(appcom2);
+
+		final ApplicationCommunication appcom3 = new ApplicationCommunication();
+		appcom3.setRequests(100);
+		appcom3.setSourceApplication(app0);
+		appcom3.setTargetApplication(app1);
+		app0.getOutgoingApplicationCommunications().add(appcom3);
+
+		final ApplicationCommunication appcom4 = new ApplicationCommunication();
+		appcom4.setRequests(100);
+		appcom4.setSourceApplication(app0);
+		appcom4.setTargetApplication(app2);
+		app0.getOutgoingApplicationCommunications().add(appcom4);
+
+		final ApplicationCommunication appcom5 = new ApplicationCommunication();
+		appcom5.setRequests(100);
+		appcom5.setSourceApplication(app1);
+		appcom5.setTargetApplication(app3);
+		app1.getOutgoingApplicationCommunications().add(appcom5);
+
+		final ApplicationCommunication appcom6 = new ApplicationCommunication();
+		appcom6.setRequests(100);
+		appcom6.setSourceApplication(app0);
+		appcom6.setTargetApplication(app3);
+		app0.getOutgoingApplicationCommunications().add(appcom6);
+
+		final ApplicationCommunication appcom7 = new ApplicationCommunication();
+		appcom7.setRequests(100);
+		appcom7.setSourceApplication(app0);
+		appcom7.setTargetApplication(
+				landscape.getSystems().get(3).getNodeGroups().get(0).getNodes().get(0).getApplications().get(0));
+		app0.getOutgoingApplicationCommunications().add(appcom7);
 	}
 
 	private Landscape copyLandscape(final Landscape landscape) {
@@ -108,7 +437,6 @@ public class ArchConfCheckRessource {
 					copyNode.setParent(copyNG);
 					copyNG.getNodes().add(copyNode);
 					for (final Application app : node.getApplications()) {
-						// reicht erstmal! xD
 						final Application copyApp = new Application();
 						copyApp.setLastUsage(app.getLastUsage());
 						copyApp.setName(app.getName());
@@ -116,6 +444,12 @@ public class ArchConfCheckRessource {
 						// copyApp.setOutgoingApplicationCommunications();
 						copyApp.setProgrammingLanguage(app.getProgrammingLanguage());
 						copyApp.setParent(copyNode);
+						copyNode.getApplications().add(copyApp);
+						for (final Component comp : app.getComponents()) {
+							final Component newChildComp = copyComponent(comp);
+							newChildComp.setBelongingApplication(copyApp);
+							copyApp.getComponents().add(newChildComp);
+						}
 					}
 				}
 			}
@@ -165,11 +499,14 @@ public class ArchConfCheckRessource {
 												// hier kann man die Source app eintragen! #EZierThanEZ
 												copyAppCom.setSourceApplication(suchApp);
 												// #EZ #nomercy #computationalTimeWHAT?
+												suchApp.getOutgoingApplicationCommunications().add(copyAppCom);
 											}
 										}
 									}
 								}
 							}
+
+							copyLandscape.getOutgoingApplicationCommunications().add(copyAppCom);
 						}
 					}
 				}
@@ -179,136 +516,25 @@ public class ArchConfCheckRessource {
 		return copyLandscape;
 	}
 
-	// private void fillLandscape1(final Landscape landscape) {
-	// landscape.setOverallCalls(new Random().nextInt(300000));
-	//
-	// final System laLaLandSystem = createSystem("LaLaLand", landscape);
-	// final NodeGroup laLaLandNG = createNodeGroup("10.0.99.1 - 10.0.99.2",
-	// laLaLandSystem);
-	// final Node requestsNode = createNode("10.0.99.1", laLaLandNG);
-	// final Node node2Node = createNode("10.0.99.2", laLaLandNG);
-	// // final Application singingApp = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, requestsNode);
-	// // final Application dancingApp = createApplication("Dancing",
-	// // EProgrammingLanguage.JAVA, requestsNode);
-	// // final Application singing2App = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, node2Node);
-	// // final Application dancing2App = createApplication("Dancing",
-	// // EProgrammingLanguage.JAVA, node2Node);
-	//
-	// final System disney = createSystem("Disney", landscape);
-	// final NodeGroup characters = createNodeGroup("10.0.0.1 - 10.0.0.10", disney);
-	// final Node mickey = createNode("10.0.0.1", characters);
-	// final Node minni = createNode("10.0.0.2", characters);
-	// final Node donald = createNode("10.0.0.3", characters);
-	// final Node daisy = createNode("10.0.0.4", characters);
-	// final Node pluto = createNode("10.0.0.5", characters);
-	// final Node goofy = createNode("10.0.0.6", characters);
-	// final Node trick = createNode("10.0.0.7", characters);
-	// final Node tick = createNode("10.0.0.8", characters);
-	// final Node track = createNode("10.0.0.9", characters);
-	// final Node dagobert = createNode("10.0.0.10", characters);
-	// // final Application skillz = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, mickey);
-	// // final Application skillz2 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, minni);
-	// // final Application skillz3 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, donald);
-	// // final Application skillz4 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, daisy);
-	// // final Application skillz5 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, pluto);
-	// // final Application skillz6 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, goofy);
-	// // final Application skillz7 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, trick);
-	// // final Application skillz8 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, tick);
-	// // final Application skillz9 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, track);
-	// // final Application skillz0 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, dagobert);
-	//
-	// }
-	//
-	// private void fillLandscape2(final Landscape landscape) {
-	// landscape.setOverallCalls(new Random().nextInt(300000));
-	//
-	// final System laLaLandSystem = createSystem("LaLaLand", landscape);
-	// final NodeGroup laLaLandNG = createNodeGroup("10.0.99.1 - 10.0.99.2",
-	// laLaLandSystem);
-	// final Node requestsNode = createNode("10.0.99.1", laLaLandNG);
-	// final Node node2Node = createNode("10.0.99.2", laLaLandNG);
-	// // final Application singingApp = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, requestsNode);
-	// // final Application dancingApp = createApplication("Dancing",
-	// // EProgrammingLanguage.JAVA, requestsNode);
-	// // final Application singing2App = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, node2Node);
-	// // final Application dancing2App = createApplication("Dancing",
-	// // EProgrammingLanguage.JAVA, node2Node);
-	//
-	// final System disney = createSystem("Disney", landscape);
-	// final NodeGroup characters = createNodeGroup("10.0.0.1 - 10.0.0.10", disney);
-	// final Node mickey = createNode("10.0.0.1", characters);
-	// final Node minni = createNode("10.0.0.2", characters);
-	// final Node donald = createNode("10.0.0.3", characters);
-	// final Node daisy = createNode("10.0.0.4", characters);
-	// final Node pluto = createNode("10.0.0.5", characters);
-	// final Node tick = createNode("10.0.0.8", characters);
-	// final Node track = createNode("10.0.0.9", characters);
-	// final Node dagobert = createNode("10.0.0.10", characters);
-	// // final Application skillz = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, mickey);
-	// // final Application skillz2 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, minni);
-	// // final Application skillz3 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, donald);
-	// // final Application skillz4 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, daisy);
-	// // final Application skillz5 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, pluto);
-	// // final Application skillz8 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, tick);
-	// // final Application skillz9 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, track);
-	// // final Application skillz0 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, dagobert);
-	//
-	// final NodeGroup actors = createNodeGroup("10.0.21.100 - 10.0.21.255",
-	// laLaLandSystem);
-	// final Node smith = createNode("10.0.21.102", actors);
-	// final Node agent = createNode("10.0.21.106", actors);
-	// final Node dont = createNode("10.0.21.103", actors);
-	// final Node know = createNode("10.0.21.107", actors);
-	// // final Application actorsApp = createApplication("Acting",
-	// // EProgrammingLanguage.JAVA, smith);
-	// // final Application actorsApp1 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, smith);
-	// // final Application actorsApp2 = createApplication("Crying",
-	// // EProgrammingLanguage.JAVA, smith);
-	// // final Application actorsApp3 = createApplication("Acting",
-	// // EProgrammingLanguage.JAVA, agent);
-	// // final Application actorsApp4 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, agent);
-	// // final Application actorsApp5 = createApplication("Crying",
-	// // EProgrammingLanguage.JAVA, agent);
-	// // final Application actorsApp6 = createApplication("Acting",
-	// // EProgrammingLanguage.JAVA, dont);
-	// // final Application actorsApp7 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, dont);
-	// // final Application actorsApp8 = createApplication("Crying",
-	// // EProgrammingLanguage.JAVA, dont);
-	// // final Application actorsApp9 = createApplication("Acting",
-	// // EProgrammingLanguage.JAVA, know);
-	// // final Application actorsApp10 = createApplication("Singing",
-	// // EProgrammingLanguage.JAVA, know);
-	// // final Application actorsApp11 = createApplication("Crying",
-	// // EProgrammingLanguage.JAVA, know);
-	//
-	// createSystem("LaLaLands", landscape);
-	//
-	// }
+	private Component copyComponent(final Component comp) {
+		final Component newComp = new Component();
+		newComp.setFullQualifiedName(comp.getFullQualifiedName());
+		newComp.setName(comp.getName());
+		for (final Component childComp : comp.getChildren()) {
+			final Component newChildComp = copyComponent(childComp);
+			newComp.getChildren().add(newChildComp);
+			childComp.setParentComponent(newComp);
+		}
+		for (final Clazz childClazz : comp.getClazzes()) {
+			final Clazz newChildClazz = new Clazz();
+			newChildClazz.setFullQualifiedName(childClazz.getFullQualifiedName());
+			newChildClazz.setName(childClazz.getName());
+			newChildClazz.setInstanceCount(childClazz.getInstanceCount());
+			newChildClazz.setParent(newComp);
+			newComp.getClazzes().add(newChildClazz);
+		}
+		return newComp;
+	}
 
 	// taken from LandscapeDummyCreator:
 	static int applicationId = 0;
@@ -356,7 +582,7 @@ public class ArchConfCheckRessource {
 
 		application.setLastUsage(java.lang.System.currentTimeMillis());
 
-		application.setProgrammingLanguage(EProgrammingLanguage.JAVA);
+		application.setProgrammingLanguage(language);
 
 		application.setName(name);
 		parent.getApplications().add(application);
@@ -382,6 +608,7 @@ public class ArchConfCheckRessource {
 		component.setName(name);
 		component.setParentComponent(parent);
 		component.setBelongingApplication(app);
+		// one of the parent or app are always null!!!
 		if (parent != null) {
 			component.setFullQualifiedName(parent.getFullQualifiedName() + "." + name);
 			parent.getChildren().add(component);
@@ -389,6 +616,18 @@ public class ArchConfCheckRessource {
 			component.setFullQualifiedName(name);
 		}
 		return component;
+	}
+
+	private static Clazz createClazz(final String name, final Component component, final int instanceCount) {
+		final Clazz clazz = new Clazz();
+		clazz.initializeID();
+		clazz.setName(name);
+		clazz.setFullQualifiedName(component.getFullQualifiedName() + "." + name);
+		clazz.setInstanceCount(instanceCount);
+		clazz.setParent(component);
+		component.getClazzes().add(clazz);
+
+		return clazz;
 	}
 
 	private Landscape calculateArchConfCheckLandscape(final Landscape monitoredLandscape,
@@ -499,6 +738,7 @@ public class ArchConfCheckRessource {
 				final Application comparedApp = new Application();
 				comparedApp.setName(app.getName());
 				comparedApp.setParent(comparedNode);
+				comparedApp.setProgrammingLanguage(app.getProgrammingLanguage());
 				comparedApp.getExtensionAttributes().put(saveAs, status);
 				setStatusOfChildComponents(comparedApp, app, status);
 				comparedNode.getApplications().add(comparedApp);
@@ -515,7 +755,7 @@ public class ArchConfCheckRessource {
 				comparedComponent.setBelongingApplication(comparedApp);
 				comparedComponent.getExtensionAttributes().put(saveAs, status);
 				setStatusOfComponents(comparedComponent, component, status);
-				app.getComponents().add(comparedComponent);
+				comparedApp.getComponents().add(comparedComponent);
 			}
 		}
 	}
@@ -556,6 +796,8 @@ public class ArchConfCheckRessource {
 						if (monitoredNG.getName().equals(modeledNG.getName())) {
 							// this NG was ASMODELED
 							final NodeGroup comparedNG = new NodeGroup();
+							java.lang.System.out.println(
+									"modeledNG: " + modeledNG.getName() + " monitoredNG: " + monitoredNG.getName());
 							comparedNG.setName(monitoredNG.getName());
 							comparedNG.setParent(comparedSystem);
 							comparedNG.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
@@ -975,27 +1217,7 @@ public class ArchConfCheckRessource {
 																					.size());
 																	final ApplicationCommunication comparedAppCommunication = new ApplicationCommunication();
 																	counter += 1;
-																	java.lang.System.out
-																			.println("neue ApplicationCommunication:");
-																	java.lang.System.out
-																			.println(monitoredAppCommunication
-																					.getSourceApplication().getParent()
-																					.getParent().getParent().getName()
-																					+ "//"
-																					+ monitoredAppCommunication
-																							.getSourceApplication()
-																							.getParent().getParent()
-																							.getName()
-																					+ "//"
-																					+ monitoredAppCommunication
-																							.getSourceApplication()
-																							.getParent()
-																							.getDisplayName()
-																					+ "//"
-																					+ monitoredAppCommunication
-																							.getSourceApplication()
-																							.getName()
-																					+ "->");
+
 																	comparedAppCommunication.initializeID();
 																	comparedAppCommunication.setAverageResponseTime(
 																			monitoredAppCommunication
@@ -1065,29 +1287,6 @@ public class ArchConfCheckRessource {
 																						// suchApp jetzt als TargetApp
 																						// eintragen #EZ
 
-																						java.lang.System.out.println(
-																								monitoredAppCommunication
-																										.getTargetApplication()
-																										.getParent()
-																										.getParent()
-																										.getParent()
-																										.getName()
-																										+ "//"
-																										+ monitoredAppCommunication
-																												.getTargetApplication()
-																												.getParent()
-																												.getParent()
-																												.getName()
-																										+ "//"
-																										+ monitoredAppCommunication
-																												.getTargetApplication()
-																												.getParent()
-																												.getDisplayName()
-																										+ "//"
-																										+ monitoredAppCommunication
-																												.getTargetApplication()
-																												.getName());
-
 																						comparedAppCommunication
 																								.setTargetApplication(
 																										suchApp);
@@ -1114,7 +1313,7 @@ public class ArchConfCheckRessource {
 																	// + comparedAppCommunication
 																	// .getTargetApplication());
 																	comparedAppCommunication.getExtensionAttributes()
-																			.put(saveAs, Status.ASMODELLED);
+																			.put(saveAs, Status.WARNING);
 																	comparedApp.getOutgoingApplicationCommunications()
 																			.add(comparedAppCommunication);
 																	comparedLandscape
