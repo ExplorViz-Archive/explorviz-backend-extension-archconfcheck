@@ -13,6 +13,7 @@ import javax.ws.rs.Produces;
 import net.explorviz.api.ExtensionAPI;
 import net.explorviz.api.ExtensionAPIImpl;
 import net.explorviz.extension.archconfcheck.model.Status;
+import net.explorviz.extension.archconfcheck.model.StatusBubble;
 import net.explorviz.model.application.Application;
 import net.explorviz.model.application.ApplicationCommunication;
 import net.explorviz.model.application.Clazz;
@@ -33,6 +34,7 @@ public class ArchConfCheckRessource {
 	private final ExtensionAPIImpl api = ExtensionAPI.get();
 	private final String MODEL_REPOSITORY = "modellRepository";
 	private static final String saveAs = "status";
+	private final String bubble = "";
 
 	@GET
 	// the timestamps parameter is conventionalized to be first: monitored timestamp
@@ -152,11 +154,22 @@ public class ArchConfCheckRessource {
 		node2.getApplications().add(app2);
 
 		final Application app3 = new Application();
-		app3.setName("unsuspicousApp");
+		app3.setName("unsuspicousApp3");
 		app3.setLastUsage(323);
 		app3.setProgrammingLanguage(EProgrammingLanguage.JAVA);
 		app3.setParent(node3);
 		node3.getApplications().add(app3);
+
+		final Component component1 = createComponent("test", null, app3);
+		app3.getComponents().add(component1);
+		final Component component2 = createComponent("impl", component1, null);
+		final Component component3 = createComponent("DB", component1, null);
+		final Component component4 = createComponent("Websocket", component2, null);
+		final Component component5 = createComponent("CrazyComponent", component4, null);
+		final Clazz claz1 = createClazz("testClazz", component1, 10);
+		final Clazz claz2 = createClazz("testClazz", component2, 10);
+		final Clazz claz3 = createClazz("betterClazz", component5, 15);
+		final Clazz claz4 = createClazz("testClazz", component4, 10);
 
 		final Application app4 = new Application();
 		app4.setName("suspicousApp");
@@ -183,14 +196,15 @@ public class ArchConfCheckRessource {
 		final Component comp7 = createComponent("SmallTransaktions", comp5, app42);
 		final Component comp8 = createComponent("HugeFisch", comp5, app42);
 		final Component comp9 = createComponent("TrueStory", comp5, app42);
-		// final Component comp10 = createComponent("financialComponent", comp6, null);
-		// final Component comp11 = createComponent("financialComponent", comp7, null);
-		// final Component comp12 = createComponent("financialComponent", comp8, null);
-		// final Component comp13 = createComponent("financialComponent", comp9, null);
-		// createClazz("financialDecoy", comp10, 10);
-		// createClazz("financialDecoy", comp11, 10);
-		// createClazz("financialDecoy", comp12, 10);
-		// createClazz("financialDecoy", comp13, 10);
+		final Component comp10 = createComponent("financialComponent", comp6, app42);
+		final Component comp11 = createComponent("financialComponent", comp7, null);
+		final Component comp12 = createComponent("financialComponent", comp8, null);
+		final Component comp13 = createComponent("financialComponent", comp9, null);
+		final Component comp14 = createComponent("testFinancing", comp13, null);
+		createClazz("financialDecoy", comp10, 10);
+		createClazz("financialDecoy", comp11, 10);
+		createClazz("financialDecoy", comp12, 10);
+		createClazz("financialDecoy", comp14, 10);
 
 		final ApplicationCommunication appcom1 = new ApplicationCommunication();
 		appcom1.setRequests(100);
@@ -361,11 +375,21 @@ public class ArchConfCheckRessource {
 		node2.getApplications().add(app2);
 
 		final Application app3 = new Application();
-		app3.setName("unsuspicousApp");
+		app3.setName("unsuspicousApp3");
 		app3.setLastUsage(323);
 		app3.setProgrammingLanguage(EProgrammingLanguage.JAVA);
 		app3.setParent(node3);
 		node3.getApplications().add(app3);
+
+		final Component component1 = createComponent("test", null, app3);
+		app3.getComponents().add(component1);
+		final Component component2 = createComponent("impl", component1, null);
+		final Component component3 = createComponent("DB", component1, null);
+		final Component component4 = createComponent("Websocket", component2, null);
+		final Clazz claz1 = createClazz("testClazz", component1, 10);
+		final Clazz claz2 = createClazz("testClazz", component2, 10);
+		final Clazz claz3 = createClazz("testClazz", component3, 10);
+		final Clazz claz4 = createClazz("testClazz", component4, 10);
 
 		final Application app4 = createApplication("extension", EProgrammingLanguage.JAVA, node3);
 
@@ -413,6 +437,22 @@ public class ArchConfCheckRessource {
 		appcom7.setTargetApplication(
 				landscape.getSystems().get(3).getNodeGroups().get(0).getNodes().get(0).getApplications().get(0));
 		app0.getOutgoingApplicationCommunications().add(appcom7);
+
+		final System system3 = createSystem("DB H2", landscape);
+		final NodeGroup nodegroup5 = createNodeGroup("10.0.0.50 - 10.0.0.69", system3);
+		final Node node17 = createNode("10.0.0.55", nodegroup5);
+		final Application app43 = createApplication("Websocket", EProgrammingLanguage.JAVA, node17);
+		final Node node18 = createNode("10.0.0.56", nodegroup5);
+		final Application app44 = createApplication("Database", EProgrammingLanguage.JAVA, node18);
+		createApplicationCommunication(app43, app44, landscape, 100);
+		final NodeGroup nodegroup6 = createNodeGroup("10.0.1.50", system3);
+		final Node node19 = createNode("10.0.1.50", nodegroup6);
+		final Application app45 = createApplication("Interface", EProgrammingLanguage.JAVA, node19);
+		createApplicationCommunication(app43, app45, landscape, 120);
+		createApplicationCommunication(app43,
+				landscape.getSystems().get(3).getNodeGroups().get(0).getNodes().get(0).getApplications().get(0),
+				landscape, 120);
+
 	}
 
 	private Landscape copyLandscape(final Landscape landscape) {
@@ -762,9 +802,10 @@ public class ArchConfCheckRessource {
 
 	private void setStatusOfComponents(final Component comparedComponent, final Component component,
 			final Status status) {
+		// java.lang.System.out.println("hier bin ich mensch hier kann ich sein");
 		if (component != null) {
 			for (final Component child : component.getChildren()) {
-				final Component comparedChild = child;
+				final Component comparedChild = new Component();
 				comparedChild.setName(child.getName());
 				comparedChild.setParentComponent(comparedComponent);
 				comparedChild.setFullQualifiedName(child.getFullQualifiedName());
@@ -796,8 +837,9 @@ public class ArchConfCheckRessource {
 						if (monitoredNG.getName().equals(modeledNG.getName())) {
 							// this NG was ASMODELED
 							final NodeGroup comparedNG = new NodeGroup();
-							java.lang.System.out.println(
-									"modeledNG: " + modeledNG.getName() + " monitoredNG: " + monitoredNG.getName());
+							// java.lang.System.out.println(
+							// "modeledNG: " + modeledNG.getName() + " monitoredNG: " +
+							// monitoredNG.getName());
 							comparedNG.setName(monitoredNG.getName());
 							comparedNG.setParent(comparedSystem);
 							comparedNG.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
@@ -872,7 +914,6 @@ public class ArchConfCheckRessource {
 						comparedNode.setName(monitoredNode.getName());
 						comparedNode.setParent(comparedNG);
 						comparedNode.setIpAddress(monitoredNode.getIpAddress());
-						java.lang.System.out.println("kommt er hier rein fragezeichen!");
 						comparedNode.getExtensionAttributes().put(saveAs, Status.WARNING);
 						setStatusOfApplications(comparedNode, monitoredNode, Status.WARNING);
 						comparedNG.getNodes().add(comparedNode);
@@ -919,16 +960,21 @@ public class ArchConfCheckRessource {
 							comparedApplication.setName(monitoredApplication.getName());
 							comparedApplication.setParent(comparedNode);
 							comparedApplication.setProgrammingLanguage(monitoredApplication.getProgrammingLanguage());
-							comparedApplication.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
-							checkChildComponents(comparedApplication, monitoredApplication, modeledApplication);
+
+							final StatusBubble statusBubble = new StatusBubble();
+							checkChildComponents(comparedApplication, monitoredApplication, modeledApplication,
+									statusBubble);
+							java.lang.System.out
+									.println(comparedApplication.getName() + ": " + statusBubble.getStatus());
+							comparedApplication.getExtensionAttributes().put(saveAs, statusBubble.getStatus());
 							comparedNode.getApplications().add(comparedApplication);
 							compareCheck = true;
 							break;
 						}
 					}
 					if (compareCheck == false) {
-						// now we know it is a Node that was not in the model but was in the monitored
-						// Data => WARNINode
+						// now we know it is a App that was not in the model but was in the monitored
+						// Data => WARNINGApp
 						final Application comparedApplication = new Application();
 						comparedApplication.setName(monitoredApplication.getName());
 						comparedApplication.setParent(comparedNode);
@@ -968,7 +1014,7 @@ public class ArchConfCheckRessource {
 	}
 
 	private void checkChildComponents(final Application comparedApplication, final Application monitoredApplication,
-			final Application modeledApplication) {
+			final Application modeledApplication, final StatusBubble bubble) {
 		if (monitoredApplication != null) {
 			for (final Component monitoredComponent : monitoredApplication.getComponents()) {
 				boolean compareCheck = false;
@@ -980,8 +1026,8 @@ public class ArchConfCheckRessource {
 							comparedComponent.setName(monitoredComponent.getName());
 							comparedComponent.setBelongingApplication(comparedApplication);
 							comparedComponent.setFullQualifiedName(monitoredComponent.getFullQualifiedName());
+							checkComponents(comparedComponent, monitoredComponent, modeledComponent, bubble);
 							comparedComponent.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
-							checkComponents(comparedComponent, monitoredComponent, modeledComponent);
 							comparedApplication.getComponents().add(comparedComponent);
 							compareCheck = true;
 							break;
@@ -996,6 +1042,8 @@ public class ArchConfCheckRessource {
 						comparedComponent.setBelongingApplication(comparedApplication);
 						comparedComponent.setFullQualifiedName(monitoredComponent.getFullQualifiedName());
 						comparedComponent.getExtensionAttributes().put(saveAs, Status.WARNING);
+						java.lang.System.out.println("ich habe eine Warnung auf Ebene 0");
+						bubble.setStatus(Status.WARNING);
 						setStatusOfComponents(comparedComponent, monitoredComponent, Status.WARNING);
 						comparedApplication.getComponents().add(comparedComponent);
 					}
@@ -1021,6 +1069,10 @@ public class ArchConfCheckRessource {
 						comparedComponent.setBelongingApplication(comparedApplication);
 						comparedComponent.setFullQualifiedName(modeledComponent.getFullQualifiedName());
 						comparedComponent.getExtensionAttributes().put(saveAs, Status.GHOST);
+						if (bubble.getStatus() != Status.WARNING) {
+							java.lang.System.out.println("ich habe einen Ghost und keine Warnung auf Ebene 0");
+							bubble.setStatus(Status.GHOST);
+						}
 						setStatusOfComponents(comparedComponent, modeledComponent, Status.GHOST);
 						comparedApplication.getComponents().add(comparedComponent);
 					}
@@ -1030,7 +1082,7 @@ public class ArchConfCheckRessource {
 	}
 
 	private void checkComponents(final Component comparedComponent, final Component monitoredComponent,
-			final Component modeledComponent) {
+			final Component modeledComponent, final StatusBubble bubble) {
 		if (monitoredComponent != null) {
 			for (final Component monitoredChildComponent : monitoredComponent.getChildren()) {
 				boolean compareCheck = false;
@@ -1044,7 +1096,8 @@ public class ArchConfCheckRessource {
 							comparedChildComponent.setFullQualifiedName(monitoredChildComponent.getFullQualifiedName());
 							comparedChildComponent.setParentComponent(comparedComponent);
 							comparedChildComponent.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
-							checkComponents(comparedChildComponent, monitoredChildComponent, modeledChildComponent);
+							checkComponents(comparedChildComponent, monitoredChildComponent, modeledChildComponent,
+									bubble);
 							comparedComponent.getChildren().add(comparedChildComponent);
 							compareCheck = true;
 							break;
@@ -1059,6 +1112,8 @@ public class ArchConfCheckRessource {
 						comparedChildComponent.setFullQualifiedName(monitoredChildComponent.getFullQualifiedName());
 						comparedChildComponent.setParentComponent(comparedComponent);
 						comparedChildComponent.getExtensionAttributes().put(saveAs, Status.WARNING);
+						java.lang.System.out.println("ich habe eine Warnung auf Ebene X");
+						bubble.setStatus(Status.WARNING);
 						setStatusOfComponents(comparedChildComponent, monitoredChildComponent, Status.WARNING);
 						comparedComponent.getChildren().add(comparedChildComponent);
 					}
@@ -1084,6 +1139,11 @@ public class ArchConfCheckRessource {
 						comparedChildComponent.setName(modeledChildComponent.getName());
 						comparedChildComponent.setFullQualifiedName(modeledChildComponent.getFullQualifiedName());
 						comparedChildComponent.setParentComponent(comparedComponent);
+						java.lang.System.out.println(bubble);
+						if (bubble.getStatus() != Status.WARNING) {
+							java.lang.System.out.println("ich habe eine GEISTER auf Ebene X");
+							bubble.setStatus(Status.GHOST);
+						}
 						comparedChildComponent.getExtensionAttributes().put(saveAs, Status.GHOST);
 						setStatusOfComponents(comparedChildComponent, modeledChildComponent, Status.GHOST);
 						comparedComponent.getChildren().add(comparedChildComponent);
@@ -1091,6 +1151,8 @@ public class ArchConfCheckRessource {
 				}
 			}
 		}
+		java.lang.System.out.println("after all components: ");
+		java.lang.System.out.println(bubble);
 
 		// now for the clazzes
 		if (monitoredComponent != null) {
@@ -1125,6 +1187,8 @@ public class ArchConfCheckRessource {
 						// just here for completness reasons
 						// comparedClazz.setInstanceCount(monitoredClazz.getInstanceCount());
 						comparedClazz.getExtensionAttributes().put(saveAs, Status.WARNING);
+						bubble.setStatus(Status.WARNING);
+						java.lang.System.out.println("ich habe eine ClazzWarnung auf Ebene X");
 						// does not have any submodules (clazzes are ALWAYS leaves of the landscape
 						// tree)
 						comparedComponent.getClazzes().add(comparedClazz);
@@ -1153,6 +1217,12 @@ public class ArchConfCheckRessource {
 						// just here for completness reasons
 						// comparedClazz.setInstanceCount(modeledClazz.getInstanceCount());
 						comparedClazz.getExtensionAttributes().put(saveAs, Status.GHOST);
+						java.lang.System.out.println("ich habe einen ClazzGeist auf Ebene X");
+						java.lang.System.out.println(bubble);
+						if (bubble.getStatus() != Status.WARNING) {
+							bubble.setStatus(Status.GHOST);
+							;
+						}
 						// does not have any submodules (clazzes are ALWAYS leaves of the landscape
 						// tree)
 						comparedComponent.getClazzes().add(comparedClazz);
@@ -1181,23 +1251,25 @@ public class ArchConfCheckRessource {
 			for (final System comparedSystem : comparedLandscape.getSystems()) {
 				for (final System monitoredSystem : monitoredLandscape.getSystems()) {
 					if (monitoredSystem.getName().equals(comparedSystem.getName())) {
-						java.lang.System.out.println("systems heiﬂen gleich:" + comparedSystem.getName());
+						// java.lang.System.out.println("systems heiﬂen gleich:" +
+						// comparedSystem.getName());
 						for (final NodeGroup comparedNodeGroup : comparedSystem.getNodeGroups()) {
 							for (final NodeGroup monitoredNodeGroup : monitoredSystem.getNodeGroups()) {
 								if (comparedNodeGroup.getName().equals(monitoredNodeGroup.getName())) {
-									java.lang.System.out
-											.println("nodegroups heiﬂen gleich:" + comparedNodeGroup.getName());
+									// java.lang.System.out
+									// .println("nodegroups heiﬂen gleich:" + comparedNodeGroup.getName());
 									for (final Node comparedNode : comparedNodeGroup.getNodes()) {
 										for (final Node monitoredNode : monitoredNodeGroup.getNodes()) {
 											if (comparedNode.getDisplayName().equals(monitoredNode.getDisplayName())) {
-												java.lang.System.out.println(
-														"nodes heiﬂen gleich:" + comparedNode.getDisplayName());
+												// java.lang.System.out.println(
+												// "nodes heiﬂen gleich:" + comparedNode.getDisplayName());
 												for (final Application comparedApp : comparedNode.getApplications()) {
 													for (final Application monitoredApp : monitoredNode
 															.getApplications()) {
 														if (comparedApp.getName().equals(monitoredApp.getName())) {
-															java.lang.System.out.println("Applications heiﬂen gleich:"
-																	+ comparedApp.getName());
+															// java.lang.System.out.println("Applications heiﬂen
+															// gleich:"
+															// + comparedApp.getName());
 															final List<ApplicationCommunication> listOfCom = new ArrayList();
 															for (final ApplicationCommunication monitoredAppCommunication : monitoredApp
 																	.getOutgoingApplicationCommunications()) {
@@ -1211,10 +1283,10 @@ public class ArchConfCheckRessource {
 																if (!doppelteCom) {
 																	listOfCom.add(monitoredAppCommunication);
 
-																	java.lang.System.out
-																			.println("# of coms:" + monitoredApp
-																					.getOutgoingApplicationCommunications()
-																					.size());
+																	// java.lang.System.out
+																	// .println("# of coms:" + monitoredApp
+																	// .getOutgoingApplicationCommunications()
+																	// .size());
 																	final ApplicationCommunication comparedAppCommunication = new ApplicationCommunication();
 																	counter += 1;
 
@@ -1516,6 +1588,7 @@ public class ArchConfCheckRessource {
 				}
 			}
 		}
-		java.lang.System.out.println("counter: " + counter + " reverse: " + reversecounter);
+		// java.lang.System.out.println("counter: " + counter + " reverse: " +
+		// reversecounter);
 	}
 }
