@@ -358,7 +358,13 @@ public class ArchConfCheckRessource {
 		nodegroup1.getNodes().add(node3);
 
 		final Node node4 = createNode("unsuspicousCommunicator", nodegroup1);
-		final Application app0 = createApplication("communicator2.0", EProgrammingLanguage.PERL, node4);
+		final Application app0 = createApplication("communicator2.0", EProgrammingLanguage.JAVA, node4);
+		final Component component111 = createComponent("test", null, app0);
+		app0.getComponents().add(component111);
+		final Component component112 = createComponent("tester", null, app0);
+		app0.getComponents().add(component112);
+		final Component component113 = createComponent("testest", component112, null);
+		final Clazz claz111 = createClazz("testClazz", component111, 10);
 
 		final Application app1 = new Application();
 		app1.setName("unsuspicousApp");
@@ -802,7 +808,6 @@ public class ArchConfCheckRessource {
 
 	private void setStatusOfComponents(final Component comparedComponent, final Component component,
 			final Status status) {
-		// java.lang.System.out.println("hier bin ich mensch hier kann ich sein");
 		if (component != null) {
 			for (final Component child : component.getChildren()) {
 				final Component comparedChild = new Component();
@@ -837,9 +842,6 @@ public class ArchConfCheckRessource {
 						if (monitoredNG.getName().equals(modeledNG.getName())) {
 							// this NG was ASMODELED
 							final NodeGroup comparedNG = new NodeGroup();
-							// java.lang.System.out.println(
-							// "modeledNG: " + modeledNG.getName() + " monitoredNG: " +
-							// monitoredNG.getName());
 							comparedNG.setName(monitoredNG.getName());
 							comparedNG.setParent(comparedSystem);
 							comparedNG.getExtensionAttributes().put(saveAs, Status.ASMODELLED);
@@ -964,8 +966,6 @@ public class ArchConfCheckRessource {
 							final StatusBubble statusBubble = new StatusBubble();
 							checkChildComponents(comparedApplication, monitoredApplication, modeledApplication,
 									statusBubble);
-							java.lang.System.out
-									.println(comparedApplication.getName() + ": " + statusBubble.getStatus());
 							comparedApplication.getExtensionAttributes().put(saveAs, statusBubble.getStatus());
 							comparedNode.getApplications().add(comparedApplication);
 							compareCheck = true;
@@ -1042,7 +1042,6 @@ public class ArchConfCheckRessource {
 						comparedComponent.setBelongingApplication(comparedApplication);
 						comparedComponent.setFullQualifiedName(monitoredComponent.getFullQualifiedName());
 						comparedComponent.getExtensionAttributes().put(saveAs, Status.WARNING);
-						java.lang.System.out.println("ich habe eine Warnung auf Ebene 0");
 						bubble.setStatus(Status.WARNING);
 						setStatusOfComponents(comparedComponent, monitoredComponent, Status.WARNING);
 						comparedApplication.getComponents().add(comparedComponent);
@@ -1070,7 +1069,6 @@ public class ArchConfCheckRessource {
 						comparedComponent.setFullQualifiedName(modeledComponent.getFullQualifiedName());
 						comparedComponent.getExtensionAttributes().put(saveAs, Status.GHOST);
 						if (bubble.getStatus() != Status.WARNING) {
-							java.lang.System.out.println("ich habe einen Ghost und keine Warnung auf Ebene 0");
 							bubble.setStatus(Status.GHOST);
 						}
 						setStatusOfComponents(comparedComponent, modeledComponent, Status.GHOST);
@@ -1112,7 +1110,6 @@ public class ArchConfCheckRessource {
 						comparedChildComponent.setFullQualifiedName(monitoredChildComponent.getFullQualifiedName());
 						comparedChildComponent.setParentComponent(comparedComponent);
 						comparedChildComponent.getExtensionAttributes().put(saveAs, Status.WARNING);
-						java.lang.System.out.println("ich habe eine Warnung auf Ebene X");
 						bubble.setStatus(Status.WARNING);
 						setStatusOfComponents(comparedChildComponent, monitoredChildComponent, Status.WARNING);
 						comparedComponent.getChildren().add(comparedChildComponent);
@@ -1139,9 +1136,7 @@ public class ArchConfCheckRessource {
 						comparedChildComponent.setName(modeledChildComponent.getName());
 						comparedChildComponent.setFullQualifiedName(modeledChildComponent.getFullQualifiedName());
 						comparedChildComponent.setParentComponent(comparedComponent);
-						java.lang.System.out.println(bubble);
 						if (bubble.getStatus() != Status.WARNING) {
-							java.lang.System.out.println("ich habe eine GEISTER auf Ebene X");
 							bubble.setStatus(Status.GHOST);
 						}
 						comparedChildComponent.getExtensionAttributes().put(saveAs, Status.GHOST);
@@ -1151,8 +1146,6 @@ public class ArchConfCheckRessource {
 				}
 			}
 		}
-		java.lang.System.out.println("after all components: ");
-		java.lang.System.out.println(bubble);
 
 		// now for the clazzes
 		if (monitoredComponent != null) {
@@ -1188,7 +1181,6 @@ public class ArchConfCheckRessource {
 						// comparedClazz.setInstanceCount(monitoredClazz.getInstanceCount());
 						comparedClazz.getExtensionAttributes().put(saveAs, Status.WARNING);
 						bubble.setStatus(Status.WARNING);
-						java.lang.System.out.println("ich habe eine ClazzWarnung auf Ebene X");
 						// does not have any submodules (clazzes are ALWAYS leaves of the landscape
 						// tree)
 						comparedComponent.getClazzes().add(comparedClazz);
@@ -1217,11 +1209,8 @@ public class ArchConfCheckRessource {
 						// just here for completness reasons
 						// comparedClazz.setInstanceCount(modeledClazz.getInstanceCount());
 						comparedClazz.getExtensionAttributes().put(saveAs, Status.GHOST);
-						java.lang.System.out.println("ich habe einen ClazzGeist auf Ebene X");
-						java.lang.System.out.println(bubble);
 						if (bubble.getStatus() != Status.WARNING) {
 							bubble.setStatus(Status.GHOST);
-							;
 						}
 						// does not have any submodules (clazzes are ALWAYS leaves of the landscape
 						// tree)
@@ -1296,29 +1285,13 @@ public class ArchConfCheckRessource {
 																					.getAverageResponseTime());
 																	comparedAppCommunication.setRequests(
 																			monitoredAppCommunication.getRequests());
-																	// comparedAppCommunication.setSourceApplication(
-																	// monitoredAppCommunication
-																	// .getSourceApplication());
-																	// statt die sourceApplication setzen zu können
-																	// müssen wir sie jetzt finden und dann neu setzen
-																	// ist doch toll!
-																	// okay bei source geht das noch ganz easy aber
-																	// target könnte da ein ticken schwieriger werden ;)
 
 																	comparedAppCommunication
 																			.setSourceApplication(comparedApp);
 
-																	// java.lang.System.out
-																	// .println("neue Communication von:"
-																	// + monitoredAppCommunication
-																	// .getSourceApplication()
-																	// + " nach "
-																	// + monitoredAppCommunication
-																	// .getTargetApplication());
-
-																	// nun zum spaßigen Teil mit den tollen Suchen nach
-																	// dem Target xD juchuuu
-
+																	// here we search for the target and if all the
+																	// parental elements and the app name is the same we
+																	// can assume the target is the same
 																	for (final System suchSystem : comparedLandscape
 																			.getSystems()) {
 																		for (final NodeGroup suchNodeGroup : suchSystem
@@ -1349,16 +1322,11 @@ public class ArchConfCheckRessource {
 																											.getParent()
 																											.getParent()
 																											.getName())) {
-																						// durch diese leicht
-																						// durchschaubare If-Abfrage
-																						// versichern wir, dass die
-																						// suchApp der TargetApp in
-																						// allen parentalen Ebenen die
-																						// gleichen Namen aufweisen und
-																						// das heißt wir können die neue
-																						// suchApp jetzt als TargetApp
-																						// eintragen #EZ
-
+																						// we have found an app that has
+																						// the same names in all his
+																						// parental elements and
+																						// therefore we can set it as a
+																						// targetapp
 																						comparedAppCommunication
 																								.setTargetApplication(
 																										suchApp);
@@ -1368,22 +1336,8 @@ public class ArchConfCheckRessource {
 																			}
 																		}
 																	}
-
-																	// das war der alte und langweilige Weg, welcher
-																	// leider auch nicht funktionierte xD
-
-																	// comparedAppCommunication.setTargetApplication(
-																	// monitoredAppCommunication
-																	// .getTargetApplication());
 																	comparedAppCommunication.setTechnology(
 																			monitoredAppCommunication.getTechnology());
-																	// java.lang.System.out
-																	// .println("neue comparedCommunication von:"
-																	// + comparedAppCommunication
-																	// .getSourceApplication()
-																	// + " nach "
-																	// + comparedAppCommunication
-																	// .getTargetApplication());
 																	comparedAppCommunication.getExtensionAttributes()
 																			.put(saveAs, Status.WARNING);
 																	comparedApp.getOutgoingApplicationCommunications()
@@ -1406,8 +1360,8 @@ public class ArchConfCheckRessource {
 				}
 			}
 		}
-		// // now we do the reverse, now all added are GHOSTs if they are not yet added,
-		// // otherwise they are ASMODELLED
+		// now we do the reverse, now all added are GHOSTs if they are not yet added,
+		// otherwise they are ASMODELLED
 		boolean asModelled = false;
 		if (comparedLandscape != null && modelledLandscape != null) {
 			for (final System comparedSystem : comparedLandscape.getSystems()) {
@@ -1545,15 +1499,6 @@ public class ArchConfCheckRessource {
 																											.getParent()
 																											.getParent()
 																											.getName())) {
-																						// durch diese leicht
-																						// durchschaubare If-Abfrage
-																						// versichern wir, dass die
-																						// suchApp der TargetApp in
-																						// allen parentalen Ebenen die
-																						// gleichen Namen aufweisen und
-																						// das heißt wir können die neue
-																						// suchApp jetzt als TargetApp
-																						// eintragen #EZ
 																						comparedAppCommunication
 																								.setTargetApplication(
 																										suchApp);
@@ -1588,7 +1533,5 @@ public class ArchConfCheckRessource {
 				}
 			}
 		}
-		// java.lang.System.out.println("counter: " + counter + " reverse: " +
-		// reversecounter);
 	}
 }
