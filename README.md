@@ -1,5 +1,7 @@
 # ExplorViz Backend ArchConfCheck Extension
 
+## Project Description
+
 This backend extension adds an architecture conformance check mode to ExplorViz (Work-In-Progress) 
 
 ## Installation
