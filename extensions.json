@@ -1,0 +1,8 @@
+{
+      "imgUrl": "img/vr.png",
+      "requiredExtensions": [
+        "backend",
+        "frontend-extension-modelleditor"
+      ],
+      "incompatibleExtensions": [],
+}
