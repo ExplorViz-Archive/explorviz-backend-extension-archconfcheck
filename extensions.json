@@ -1,5 +1,5 @@
 {
-      "imgUrl": "img/vr.png",
+      "imgUrl": "img/conf-check.svg",
       "requiredExtensions": [
         "backend",
         "frontend-extension-modeleditor"
