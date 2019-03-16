@@ -1,8 +1,8 @@
 {
       "imgSrc": "conf-check.svg",
       "requiredExtensions": [
-        "backend",
-        "frontend-extension-modeleditor"
+        "backend_master",
+        "frontend-extension-modeleditor_master"
       ],
       "incompatibleExtensions": []
 }
